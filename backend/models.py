@@ -29,3 +29,11 @@ class Book(Base):
     file_url = Column(String)
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     upload_date = Column(DateTime, default=datetime.utcnow)
+
+class AllowedUser(Base):
+    __tablename__ = "allowed_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    admission_number = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    role = Column(String, default="student")   

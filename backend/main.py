@@ -8,6 +8,8 @@ from typing import List
 from database import engine, Base, SessionLocal
 import models
 import schemas
+import csv
+import io
 
 Base.metadata.create_all(bind=engine)
 
@@ -139,3 +141,61 @@ def get_download_url(filename: str):
         ExpiresIn=3600,
     )
     return {"download_url": url}   
+
+@app.post("/allowed-users/upload")
+async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    content = await file.read()
+    decoded = content.decode("utf-8")
+    reader = csv.DictReader(io.StringIO(decoded))
+
+    added = 0
+    for row in reader:
+        admission_number = row.get("admission_number", "").strip()
+        name = row.get("name", "").strip()
+        role = row.get("role", "student").strip() or "student"
+
+        if not admission_number or not name:
+            continue
+
+        existing = db.query(models.AllowedUser).filter(
+            models.AllowedUser.admission_number == admission_number
+        ).first()
+        if existing:
+            continue
+
+        db.add(models.AllowedUser(admission_number=admission_number, name=name, role=role))
+        added += 1
+
+    db.commit()
+    return {"added": added}
+
+
+@app.get("/allowed-users/{admission_number}", response_model=schemas.AllowedUserOut)
+def check_allowed_user(admission_number: str, db: Session = Depends(get_db)):
+    user = db.query(models.AllowedUser).filter(
+        models.AllowedUser.admission_number == admission_number
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Not a registered student or teacher")
+    return user
+
+
+@app.post("/students/sync", response_model=schemas.UserOut)
+def sync_student_user(payload: dict, db: Session = Depends(get_db)):
+    admission_number = payload.get("admission_number")
+    allowed = db.query(models.AllowedUser).filter(
+        models.AllowedUser.admission_number == admission_number
+    ).first()
+    if not allowed:
+        raise HTTPException(status_code=404, detail="Not approved")
+
+    email = f"{admission_number}@butula.elibrary.local"
+    existing = db.query(models.User).filter(models.User.email == email).first()
+    if existing:
+        return existing
+
+    new_user = models.User(name=allowed.name, email=email, role=allowed.role)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user  
