@@ -18,7 +18,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://your-actual-vercel-url.vercel.app",
+        "https://butula-elibrary.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
