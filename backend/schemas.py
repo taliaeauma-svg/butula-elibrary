@@ -45,3 +45,11 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True            
+
+class AllowedUserOut(BaseModel):
+    admission_number: str
+    name: str
+    role: str
+
+    class Config:
+        from_attributes = True        
