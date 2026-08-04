@@ -9,9 +9,11 @@ import {
 import { auth } from "../../lib/firebase";
 
 const API_URL = "https://butula-elibrary-production.up.railway.app";
+const DEFAULT_PASSWORD = "welcome2026";
 
 export default function Login() {
-  const [admissionNumber, setAdmissionNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -21,30 +23,32 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const number = admissionNumber.trim();
+    const trimmedEmail = email.trim().toLowerCase();
 
     try {
-      const checkRes = await fetch(`${API_URL}/allowed-users/${number}`);
+      const checkRes = await fetch(`${API_URL}/allowed-users/by-email/${trimmedEmail}`);
       if (!checkRes.ok) {
-        setError("This admission number is not registered with the library.");
+        setError("This email is not registered with the library.");
         setLoading(false);
         return;
       }
 
-      const allowedData = await checkRes.json();
-      const email = allowedData.email || `${number}@butula.elibrary.local`;
-      const password = number;
-
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, trimmedEmail, password);
       } catch (signInErr) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        if (password === DEFAULT_PASSWORD) {
+          await createUserWithEmailAndPassword(auth, trimmedEmail, password);
+        } else {
+          setError("Incorrect password.");
+          setLoading(false);
+          return;
+        }
       }
 
       await fetch(`${API_URL}/students/sync`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ admission_number: number }),
+        body: JSON.stringify({ email: trimmedEmail }),
       });
 
       router.push("/");
@@ -62,22 +66,37 @@ export default function Login() {
           Butula E-Library
         </h1>
         <p className="text-gray-500 text-sm mb-6">
-          Sign in with your admission number
+          Sign in with your registered email
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-              Admission Number
+              Email
             </label>
             <input
-              type="text"
-              id="admissionNumber"
-              name="admissionNumber"
-              value={admissionNumber}
-              onChange={(e) => setAdmissionNumber(e.target.value)}
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="e.g. 0011"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="welcome2026 (first login)"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
             />
           </div>
@@ -94,7 +113,8 @@ export default function Login() {
         </form>
 
         <p className="text-xs text-gray-400 mt-4">
-          Only registered Butula TVET students and teachers can access this library.
+          First time logging in? Use the password welcome2026, then change it
+          in your account settings.
         </p>
       </div>
     </div>
