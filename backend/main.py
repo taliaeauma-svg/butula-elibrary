@@ -49,6 +49,7 @@ def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
     db.add(new_book)
     db.commit()
     db.refresh(new_book)
+    return new_book
 
 @app.get("/categories", response_model=List[schemas.CategoryOut])
 def get_categories(db: Session = Depends(get_db)):
@@ -62,7 +63,6 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(new_category)
     return new_category
-    return new_book
 
 @app.get("/books/{book_id}", response_model=schemas.BookOut)
 def get_book(book_id: int, db: Session = Depends(get_db)):
@@ -182,14 +182,13 @@ def check_allowed_user(admission_number: str, db: Session = Depends(get_db)):
 
 @app.post("/students/sync", response_model=schemas.UserOut)
 def sync_student_user(payload: dict, db: Session = Depends(get_db)):
-    admission_number = payload.get("admission_number")
+    email = payload.get("email")
     allowed = db.query(models.AllowedUser).filter(
-        models.AllowedUser.admission_number == admission_number
+        models.AllowedUser.email == email
     ).first()
     if not allowed:
         raise HTTPException(status_code=404, detail="Not approved")
 
-    email = f"{admission_number}@butula.elibrary.local"
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:
         return existing
@@ -198,4 +197,13 @@ def sync_student_user(payload: dict, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user  
+    return new_user
+
+@app.get("/allowed-users/by-email/{email}", response_model=schemas.AllowedUserOut)
+def check_allowed_by_email(email: str, db: Session = Depends(get_db)):
+    user = db.query(models.AllowedUser).filter(
+        models.AllowedUser.email == email
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="This email is not registered with the library")
+    return user
