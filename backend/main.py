@@ -207,3 +207,10 @@ def check_allowed_by_email(email: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="This email is not registered with the library")
     return user
+
+@app.post("/admin/migrate-add-email-column")
+def migrate_add_email_column(db: Session = Depends(get_db)):
+    from sqlalchemy import text
+    db.execute(text("ALTER TABLE allowed_users ADD COLUMN IF NOT EXISTS email VARCHAR UNIQUE;"))
+    db.commit()
+    return {"status": "done"}
