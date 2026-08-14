@@ -35,5 +35,6 @@ class AllowedUser(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     admission_number = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=True)
     name = Column(String, nullable=False)
-    role = Column(String, default="student")   
+    role = Column(String, default="student")

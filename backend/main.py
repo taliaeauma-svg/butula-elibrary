@@ -151,6 +151,7 @@ async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depen
     added = 0
     for row in reader:
         admission_number = row.get("admission_number", "").strip()
+        email = row.get("email", "").strip().lower() or None
         name = row.get("name", "").strip()
         role = row.get("role", "student").strip() or "student"
 
@@ -161,9 +162,13 @@ async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depen
             models.AllowedUser.admission_number == admission_number
         ).first()
         if existing:
+            if email and not existing.email:
+                existing.email = email
             continue
 
-        db.add(models.AllowedUser(admission_number=admission_number, name=name, role=role))
+        db.add(models.AllowedUser(
+            admission_number=admission_number, email=email, name=name, role=role
+        ))
         added += 1
 
     db.commit()
@@ -211,6 +216,9 @@ def check_allowed_by_email(email: str, db: Session = Depends(get_db)):
 @app.post("/admin/migrate-add-email-column")
 def migrate_add_email_column(db: Session = Depends(get_db)):
     from sqlalchemy import text
-    db.execute(text("ALTER TABLE allowed_users ADD COLUMN IF NOT EXISTS email VARCHAR UNIQUE;"))
+    db.execute(text("ALTER TABLE allowed_users ADD COLUMN IF NOT EXISTS email VARCHAR;"))
+    db.execute(text(
+        "CREATE UNIQUE INDEX IF NOT EXISTS ix_allowed_users_email ON allowed_users(email);"
+    ))
     db.commit()
     return {"status": "done"}

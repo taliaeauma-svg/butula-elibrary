@@ -48,6 +48,7 @@ class UserOut(BaseModel):
 
 class AllowedUserOut(BaseModel):
     admission_number: str
+    email: Optional[str] = None
     name: str
     role: str
 
