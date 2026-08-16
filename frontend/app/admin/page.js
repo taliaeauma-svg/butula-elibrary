@@ -119,20 +119,20 @@ export default function AdminDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-black">
         <Header />
-        <div className="max-w-4xl mx-auto px-6 py-14 text-gray-400 text-sm">Loading...</div>
+        <div className="max-w-4xl mx-auto px-6 py-14 text-gray-400 dark:text-gray-500 text-sm">Loading...</div>
       </div>
     );
   }
 
   if (!user || role !== "admin") {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-black">
         <Header />
         <div className="max-w-4xl mx-auto px-6 py-14 text-center">
-          <p className="text-gray-500">You don&apos;t have access to this page.</p>
-          <Link href="/" className="text-[#166534] text-sm underline mt-2 inline-block">
+          <p className="text-gray-500 dark:text-gray-400">You don&apos;t have access to this page.</p>
+          <Link href="/" className="text-[#166534] dark:text-green-400 text-sm underline mt-2 inline-block">
             Back to library
           </Link>
         </div>
@@ -141,18 +141,18 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-black">
       <Header />
 
       <section className="max-w-4xl mx-auto px-6 py-14">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+        <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-8">Admin Dashboard</h1>
 
         {/* Categories */}
         <div className="mb-12">
-          <h2 className="text-lg font-serif font-semibold text-gray-800 mb-4">Categories</h2>
-          <div className="border border-gray-200 rounded-lg divide-y divide-gray-100">
+          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h2>
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
             {categories.length === 0 && (
-              <p className="p-4 text-sm text-gray-400">No categories yet.</p>
+              <p className="p-4 text-sm text-gray-400 dark:text-gray-500">No categories yet.</p>
             )}
             {categories.map((cat) => (
               <div key={cat.id} className="p-3 flex items-center justify-between gap-3">
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                     <input
                       value={categoryEditName}
                       onChange={(e) => setCategoryEditName(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                      className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                     />
                     <button
                       onClick={() => saveCategory(cat.id)}
@@ -171,24 +171,24 @@ export default function AdminDashboard() {
                     </button>
                     <button
                       onClick={() => setEditingCategoryId(null)}
-                      className="text-xs text-gray-400"
+                      className="text-xs text-gray-400 dark:text-gray-500"
                     >
                       Cancel
                     </button>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm text-gray-700">{cat.name}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-200">{cat.name}</span>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => startEditCategory(cat)}
-                        className="text-xs text-gray-500 hover:text-[#166534]"
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400"
                       >
                         Rename
                       </button>
                       <button
                         onClick={() => deleteCategory(cat.id)}
-                        className="text-xs text-red-400 hover:text-red-600"
+                        className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
                       >
                         Delete
                       </button>
@@ -202,10 +202,10 @@ export default function AdminDashboard() {
 
         {/* Books */}
         <div className="mb-12">
-          <h2 className="text-lg font-serif font-semibold text-gray-800 mb-4">Books</h2>
-          <div className="border border-gray-200 rounded-lg divide-y divide-gray-100">
+          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Books</h2>
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
             {books.length === 0 && (
-              <p className="p-4 text-sm text-gray-400">No books yet.</p>
+              <p className="p-4 text-sm text-gray-400 dark:text-gray-500">No books yet.</p>
             )}
             {books.map((book) => (
               <div key={book.id} className="p-4">
@@ -216,18 +216,18 @@ export default function AdminDashboard() {
                         value={bookEdit.title}
                         onChange={(e) => setBookEdit((p) => ({ ...p, title: e.target.value }))}
                         placeholder="Title"
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                        className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                       />
                       <input
                         value={bookEdit.author}
                         onChange={(e) => setBookEdit((p) => ({ ...p, author: e.target.value }))}
                         placeholder="Author"
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                        className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                       />
                       <select
                         value={bookEdit.category_id}
                         onChange={(e) => setBookEdit((p) => ({ ...p, category_id: e.target.value }))}
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                        className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                       >
                         <option value="">No category</option>
                         {categories.map((cat) => (
@@ -236,12 +236,12 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                     <div className="flex items-center gap-3">
-                      <label className="text-xs text-gray-500">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">
                         Replace file:
                         <input type="file" onChange={handleReplaceFile} className="ml-2 text-xs" />
                       </label>
                       {bookEdit.file_url && (
-                        <span className="text-xs text-gray-400 truncate">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
                           current: {bookEdit.file_url.split("/").pop()}
                         </span>
                       )}
@@ -255,7 +255,7 @@ export default function AdminDashboard() {
                       </button>
                       <button
                         onClick={() => setEditingBookId(null)}
-                        className="text-xs text-gray-400"
+                        className="text-xs text-gray-400 dark:text-gray-500"
                       >
                         Cancel
                       </button>
@@ -264,8 +264,8 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-sm font-medium text-gray-800">{book.title}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{book.title}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
                         {book.author || "Unknown author"}
                         {getCategoryName(book.category_id) && ` · ${getCategoryName(book.category_id)}`}
                       </div>
@@ -273,13 +273,13 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => startEditBook(book)}
-                        className="text-xs text-gray-500 hover:text-[#166534]"
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteBook(book.id)}
-                        className="text-xs text-red-400 hover:text-red-600"
+                        className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
                       >
                         Delete
                       </button>
@@ -293,10 +293,10 @@ export default function AdminDashboard() {
 
         {/* Allowed users CSV upload */}
         <div>
-          <h2 className="text-lg font-serif font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Bulk-upload Allowed Users
           </h2>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             CSV columns: admission_number, email, name, role
           </p>
           <div className="flex items-center gap-3">
@@ -304,18 +304,18 @@ export default function AdminDashboard() {
               type="file"
               accept=".csv"
               onChange={(e) => setCsvFile(e.target.files[0])}
-              className="text-sm text-gray-600"
+              className="text-sm text-gray-600 dark:text-gray-300"
             />
             <button
               onClick={uploadCsv}
               disabled={!csvFile || csvUploading}
-              className="bg-[#166534] text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-[#14532d] transition disabled:opacity-50"
+              className="bg-[#166534] text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition disabled:opacity-50"
             >
               {csvUploading ? "Uploading..." : "Upload"}
             </button>
           </div>
           {csvResult && (
-            <p className="text-sm text-gray-500 mt-2">Added {csvResult.added} new user(s).</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Added {csvResult.added} new user(s).</p>
           )}
         </div>
       </section>

@@ -132,22 +132,22 @@ export default function Home() {
     });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-black">
       <Header />
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 py-14">
         <div className="grid md:grid-cols-3 gap-10 items-start">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 text-[#166534] text-xs font-semibold uppercase tracking-wide mb-3">
-              <span className="w-6 h-px bg-[#166534]"></span>
+            <div className="flex items-center gap-2 text-[#166534] dark:text-green-400 text-xs font-semibold uppercase tracking-wide mb-3">
+              <span className="w-6 h-px bg-[#166534] dark:bg-green-400"></span>
               Est. 2026 · Digital Collection
             </div>
-            <h1 className="text-4xl sm:text-5xl font-serif text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-serif text-gray-900 dark:text-gray-50 leading-tight mb-4">
               The whole TVET library,<br />
-              <span className="italic text-[#166534]">in one shelf.</span>
+              <span className="italic text-[#166534] dark:text-green-400">in one shelf.</span>
             </h1>
-            <p className="text-gray-500 mb-6 max-w-lg">
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-lg">
               Browse textbooks, past papers, and teacher notes across every
               department. Download for revision — anywhere, any time.
             </p>
@@ -158,11 +158,11 @@ export default function Home() {
                 placeholder="Search by title or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
               />
               <button
                 onClick={handleSearchClick}
-                className="bg-[#166534] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm"
+                className="bg-[#166534] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition text-sm"
               >
                 Search
               </button>
@@ -171,7 +171,7 @@ export default function Home() {
             {user && role === "admin" && (
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="mt-4 text-sm text-[#166534] font-medium underline"
+                className="mt-4 text-sm text-[#166534] dark:text-green-400 font-medium underline"
               >
                 {showForm ? "Cancel adding resource" : "+ Add a new resource"}
               </button>
@@ -179,23 +179,23 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="border border-gray-200 rounded-lg p-4">
-              <div className="text-xs text-gray-400 uppercase tracking-wide">
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+              <div className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 Total Resources
               </div>
-              <div className="text-2xl font-serif font-bold text-gray-900 mt-1">
+              <div className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mt-1">
                 {books.length}
               </div>
-              <div className="text-xs text-gray-400">across {categories.length} categories</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">across {categories.length} categories</div>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
-              <div className="text-xs text-gray-400 uppercase tracking-wide">
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+              <div className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 Categories
               </div>
-              <div className="text-2xl font-serif font-bold text-gray-900 mt-1">
+              <div className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mt-1">
                 {categories.length}
               </div>
-              <div className="text-xs text-gray-400">departments covered</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">departments covered</div>
             </div>
           </div>
         </div>
@@ -204,37 +204,37 @@ export default function Home() {
         {showForm && (
           <form
             onSubmit={handleSubmit}
-            className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6"
+            className="mt-8 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6"
           >
-            <h2 className="text-lg font-serif font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">
               Add New Resource
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Title</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                  className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Author</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Author</label>
                 <input
                   type="text"
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                  className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Category</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Category</label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                  className="w-full border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                 >
                   <option value="">No category</option>
                   {categories.map((cat) => (
@@ -243,26 +243,26 @@ export default function Home() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">File</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">File</label>
                 <input
                   type="file"
                   onChange={(e) => (window.__pendingFile = e.target.files[0])}
-                  className="w-full text-sm text-gray-600"
+                  className="w-full text-sm text-gray-600 dark:text-gray-300"
                 />
               </div>
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm w-full sm:w-auto"
+                  className="bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition text-sm w-full sm:w-auto"
                 >
                   Save
                 </button>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4 flex items-end gap-3">
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-4 flex items-end gap-3">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                   New Category (optional)
                 </label>
                 <input
@@ -270,13 +270,13 @@ export default function Home() {
                   placeholder="e.g. Electrical Engineering"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                  className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleAddCategory}
-                className="border border-[#166534] text-[#166534] font-medium px-4 py-2 rounded-md hover:bg-[#166534] hover:text-white transition text-sm"
+                className="border border-[#166534] text-[#166534] dark:border-green-500 dark:text-green-400 font-medium px-4 py-2 rounded-md hover:bg-[#166534] hover:text-white dark:hover:bg-green-500 dark:hover:text-black transition text-sm"
               >
                 Add Category
               </button>
@@ -287,34 +287,34 @@ export default function Home() {
 
       {/* Browse by category */}
       <section id="categories" className="max-w-6xl mx-auto px-6 pb-14">
-        <div className="text-xs font-semibold text-[#166534] uppercase tracking-wide mb-1">
+        <div className="text-xs font-semibold text-[#166534] dark:text-green-400 uppercase tracking-wide mb-1">
           Collections
         </div>
-        <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">
+        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-6">
           Browse by category
         </h2>
 
         {categories.length === 0 ? (
-          <p className="text-gray-400 text-sm">No categories yet.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">No categories yet.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setFilterCategory(String(cat.id))}
-                className={`text-left border rounded-lg p-4 hover:border-[#166534] transition ${
+                className={`text-left border rounded-lg p-4 hover:border-[#166534] dark:hover:border-green-500 transition ${
                   filterCategory === String(cat.id)
-                    ? "border-[#166534] bg-[#166534]/5"
-                    : "border-gray-200"
+                    ? "border-[#166534] bg-[#166534]/5 dark:border-green-500 dark:bg-green-500/10"
+                    : "border-gray-200 dark:border-gray-800"
                 }`}
               >
-                <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#166534] text-sm">
+                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3 text-[#166534] dark:text-green-400 text-sm">
                   📁
                 </div>
-                <div className="font-semibold text-gray-800 text-sm leading-snug">
+                <div className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-snug">
                   {cat.name}
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   {bookCountForCategory(cat.id)} resources
                 </div>
               </button>
@@ -326,14 +326,14 @@ export default function Home() {
       {/* Catalog */}
       <section id="library" className="max-w-6xl mx-auto px-6 pb-16">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h2 className="text-lg font-serif font-semibold text-gray-800">
+          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100">
             {filterCategory === "all" ? "All Resources" : getCategoryName(parseInt(filterCategory))}
           </h2>
           <div className="flex items-center gap-3">
             {filterCategory !== "all" && (
               <button
                 onClick={() => setFilterCategory("all")}
-                className="text-xs text-gray-400 hover:text-[#166534] underline"
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-[#166534] dark:hover:text-green-400 underline"
               >
                 Clear filter
               </button>
@@ -341,20 +341,20 @@ export default function Home() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="text-sm border border-gray-200 rounded-full px-3 py-1 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              className="text-sm border border-gray-200 dark:border-gray-800 rounded-full px-3 py-1 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
             >
               <option value="newest">Newest</option>
               <option value="title">Title A-Z</option>
               <option value="author">Author A-Z</option>
             </select>
-            <span className="text-sm text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
+            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-1 rounded-full">
               {filteredBooks.length} {filteredBooks.length === 1 ? "resource" : "resources"}
             </span>
           </div>
         </div>
 
         {filteredBooks.length === 0 ? (
-          <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 text-center text-gray-400">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg py-16 text-center text-gray-400 dark:text-gray-500">
             No resources found.
           </div>
         ) : (
@@ -362,28 +362,28 @@ export default function Home() {
             {filteredBooks.map((book) => (
               <div
                 key={book.id}
-                className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-[#166534]/30 transition"
+                className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-[#166534]/30 dark:hover:border-green-500/30 transition"
               >
-                <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#166534] font-bold text-sm">
+                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3 text-[#166534] dark:text-green-400 font-bold text-sm">
                   📘
                 </div>
                 <Link href={`/books/${book.id}`}>
-                  <h3 className="font-serif font-semibold text-gray-800 leading-snug hover:text-[#166534] transition">
+                  <h3 className="font-serif font-semibold text-gray-800 dark:text-gray-100 leading-snug hover:text-[#166534] dark:hover:text-green-400 transition">
                     {book.title}
                   </h3>
                 </Link>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                   {book.author || "Unknown author"}
                 </p>
                 {getCategoryName(book.category_id) && (
-                  <span className="inline-block mt-2 text-xs bg-[#166534]/10 text-[#166534] px-2 py-0.5 rounded-full">
+                  <span className="inline-block mt-2 text-xs bg-[#166534]/10 text-[#166534] dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 rounded-full">
                     {getCategoryName(book.category_id)}
                   </span>
                 )}
                 {book.file_url && (
                   <button
                     onClick={() => handleDownload(book)}
-                    className="mt-3 w-full bg-gray-100 text-gray-700 text-sm font-medium py-2 rounded-md hover:bg-gray-200 transition"
+                    className="mt-3 w-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                   >
                     Download
                   </button>
@@ -394,7 +394,7 @@ export default function Home() {
         )}
       </section>
 
-      <footer className="text-center text-gray-400 text-xs py-8 border-t border-gray-200">
+      <footer className="text-center text-gray-400 dark:text-gray-500 text-xs py-8 border-t border-gray-200 dark:border-gray-800">
         Okame Technical and Vocational College Library · Okame TVC Digital Resource Center
       </footer>
     </div>
