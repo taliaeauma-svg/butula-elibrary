@@ -4,6 +4,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 from fastapi import UploadFile, File
 from storage import s3, R2_BUCKET_NAME
+from botocore.exceptions import ClientError
 import uuid
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -157,7 +158,10 @@ def upload_file(file: UploadFile = File(...)):
     file_extension = file.filename.split(".")[-1]
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
 
-    s3.upload_fileobj(file.file, R2_BUCKET_NAME, unique_filename)
+    try:
+        s3.upload_fileobj(file.file, R2_BUCKET_NAME, unique_filename)
+    except ClientError as e:
+        raise HTTPException(status_code=502, detail=f"Storage upload failed: {e}")
 
     file_url = f"{R2_BUCKET_NAME}/{unique_filename}"
     return {"file_url": file_url, "filename": unique_filename}
