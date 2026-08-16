@@ -68,6 +68,30 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
     db.refresh(new_category)
     return new_category
 
+
+@app.put("/categories/{category_id}", response_model=schemas.CategoryOut)
+def update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Category not found")
+    existing.name = category.name
+    db.commit()
+    db.refresh(existing)
+    return existing
+
+
+@app.delete("/categories/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    existing = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Category not found")
+    db.query(models.Book).filter(models.Book.category_id == category_id).update(
+        {"category_id": None}
+    )
+    db.delete(existing)
+    db.commit()
+    return {"message": "Category deleted successfully"}
+
 @app.get("/books/{book_id}", response_model=schemas.BookOut)
 def get_book(book_id: int, db: Session = Depends(get_db)):
     book = db.query(models.Book).filter(models.Book.id == book_id).first()
@@ -93,6 +117,7 @@ def delete_book(book_id: int, db: Session = Depends(get_db)):
     book = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
+    db.query(models.Download).filter(models.Download.book_id == book_id).delete()
     db.delete(book)
     db.commit()
     return {"message": "Book deleted successfully"}
@@ -144,7 +169,45 @@ def get_download_url(filename: str):
         Params={"Bucket": R2_BUCKET_NAME, "Key": filename},
         ExpiresIn=3600,
     )
-    return {"download_url": url}   
+    return {"download_url": url}
+
+
+@app.post("/downloads")
+def log_download(payload: dict, db: Session = Depends(get_db)):
+    email = payload.get("email")
+    book_id = payload.get("book_id")
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user or not book_id:
+        return {"logged": False}
+
+    db.add(models.Download(user_id=user.id, book_id=book_id))
+    db.commit()
+    return {"logged": True}
+
+
+@app.get("/downloads/{email}", response_model=List[schemas.DownloadOut])
+def get_download_history(email: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    rows = (
+        db.query(models.Download, models.Book)
+        .join(models.Book, models.Download.book_id == models.Book.id)
+        .filter(models.Download.user_id == user.id)
+        .order_by(models.Download.downloaded_at.desc())
+        .all()
+    )
+    return [
+        schemas.DownloadOut(
+            id=download.id,
+            book_id=book.id,
+            title=book.title,
+            author=book.author,
+            downloaded_at=download.downloaded_at,
+        )
+        for download, book in rows
+    ]
 
 @app.post("/allowed-users/upload")
 async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depends(get_db)):

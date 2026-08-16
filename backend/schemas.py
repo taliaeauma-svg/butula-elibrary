@@ -42,9 +42,10 @@ class UserOut(BaseModel):
     name: str
     email: str
     role: str
+    department: Optional[str] = None
 
     class Config:
-        from_attributes = True            
+        from_attributes = True
 
 class AllowedUserOut(BaseModel):
     admission_number: str
@@ -53,4 +54,11 @@ class AllowedUserOut(BaseModel):
     role: str
 
     class Config:
-        from_attributes = True        
+        from_attributes = True
+
+class DownloadOut(BaseModel):
+    id: int
+    book_id: int
+    title: str
+    author: Optional[str] = None
+    downloaded_at: datetime

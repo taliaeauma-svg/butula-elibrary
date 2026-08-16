@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import Link from "next/link";
+import Header from "../components/Header";
+import { useAuth } from "../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
@@ -16,10 +16,9 @@ export default function Home() {
   const [newCategory, setNewCategory] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [showForm, setShowForm] = useState(false);
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
-  const router = useRouter();
+  const { user, role } = useAuth();
 
   const fetchBooks = () => {
     fetch(`${API_URL}/books`)
@@ -36,19 +35,6 @@ export default function Home() {
   useEffect(() => {
     fetchBooks();
     fetchCategories();
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        fetch(`${API_URL}/users/${currentUser.email}`)
-          .then((res) => res.json())
-          .then((data) => setRole(data.role))
-          .catch(() => setRole(null));
-      } else {
-        setRole(null);
-      }
-    });
-    return () => unsubscribe();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -101,12 +87,20 @@ export default function Home() {
       });
   };
 
-  const handleDownload = async (fileUrl) => {
-    if (!fileUrl) return;
-    const filename = fileUrl.split("/").pop();
+  const handleDownload = async (book) => {
+    if (!book.file_url) return;
+    const filename = book.file_url.split("/").pop();
     const res = await fetch(`${API_URL}/download/${filename}`);
     const data = await res.json();
     window.open(data.download_url, "_blank");
+
+    if (user) {
+      fetch(`${API_URL}/downloads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, book_id: book.id }),
+      }).catch(() => {});
+    }
   };
 
   const getCategoryName = (id) => {
@@ -117,6 +111,10 @@ export default function Home() {
   const bookCountForCategory = (id) =>
     books.filter((b) => b.category_id === id).length;
 
+  const handleSearchClick = () => {
+    document.getElementById("library")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const filteredBooks = books
     .filter((b) =>
       filterCategory === "all" ? true : b.category_id === parseInt(filterCategory)
@@ -126,63 +124,16 @@ export default function Home() {
         ? true
         : b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (b.author || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    )
+    .sort((a, b) => {
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      if (sortBy === "author") return (a.author || "").localeCompare(b.author || "");
+      return new Date(b.upload_date) - new Date(a.upload_date);
+    });
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#6d1a2b] rounded-md flex items-center justify-center text-white text-sm font-bold">
-              📖
-            </div>
-            <div>
-              <div className="font-serif font-bold text-gray-900 leading-tight">
-                Butula E-Library
-              </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wide">
-                TVET Digital Resource Center
-              </div>
-            </div>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#library" className="hover:text-[#6d1a2b]">Library</a>
-            <a href="#categories" className="hover:text-[#6d1a2b]">Categories</a>
-            <a href="#help" className="hover:text-[#6d1a2b]">Help</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            {user ? (
-              <div className="flex items-center gap-2">
-                <div className="text-right hidden sm:block">
-                  <div className="text-xs text-gray-400 leading-none">
-                    {role === "admin" ? "Admin" : "Library User"}
-                  </div>
-                  <div className="text-sm text-gray-700 leading-tight">{user.email}</div>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                  {user.email[0].toUpperCase()}
-                </div>
-                <button
-                  onClick={() => signOut(auth)}
-                  className="text-xs text-gray-400 hover:text-[#6d1a2b] ml-1"
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => router.push("/login")}
-                className="border border-[#6d1a2b] text-[#6d1a2b] font-medium px-4 py-2 rounded-md hover:bg-[#6d1a2b] hover:text-white transition text-sm"
-              >
-                Sign In
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 py-14">
@@ -209,7 +160,10 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
               />
-              <button className="bg-[#6d1a2b] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm">
+              <button
+                onClick={handleSearchClick}
+                className="bg-[#6d1a2b] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm"
+              >
                 Search
               </button>
             </div>
@@ -371,7 +325,7 @@ export default function Home() {
 
       {/* Catalog */}
       <section id="library" className="max-w-6xl mx-auto px-6 pb-16">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-lg font-serif font-semibold text-gray-800">
             {filterCategory === "all" ? "All Resources" : getCategoryName(parseInt(filterCategory))}
           </h2>
@@ -384,6 +338,15 @@ export default function Home() {
                 Clear filter
               </button>
             )}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="text-sm border border-gray-200 rounded-full px-3 py-1 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+            >
+              <option value="newest">Newest</option>
+              <option value="title">Title A-Z</option>
+              <option value="author">Author A-Z</option>
+            </select>
             <span className="text-sm text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
               {filteredBooks.length} {filteredBooks.length === 1 ? "resource" : "resources"}
             </span>
@@ -404,9 +367,11 @@ export default function Home() {
                 <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#6d1a2b] font-bold text-sm">
                   📘
                 </div>
-                <h3 className="font-serif font-semibold text-gray-800 leading-snug">
-                  {book.title}
-                </h3>
+                <Link href={`/books/${book.id}`}>
+                  <h3 className="font-serif font-semibold text-gray-800 leading-snug hover:text-[#6d1a2b] transition">
+                    {book.title}
+                  </h3>
+                </Link>
                 <p className="text-gray-500 text-sm mt-1">
                   {book.author || "Unknown author"}
                 </p>
@@ -417,7 +382,7 @@ export default function Home() {
                 )}
                 {book.file_url && (
                   <button
-                    onClick={() => handleDownload(book.file_url)}
+                    onClick={() => handleDownload(book)}
                     className="mt-3 w-full bg-gray-100 text-gray-700 text-sm font-medium py-2 rounded-md hover:bg-gray-200 transition"
                   >
                     Download

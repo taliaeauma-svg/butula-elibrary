@@ -38,3 +38,12 @@ class AllowedUser(Base):
     email = Column(String, unique=True, nullable=True)
     name = Column(String, nullable=False)
     role = Column(String, default="student")
+
+
+class Download(Base):
+    __tablename__ = "downloads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    book_id = Column(Integer, ForeignKey("books.id"), nullable=False)
+    downloaded_at = Column(DateTime, default=datetime.utcnow)
