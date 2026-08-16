@@ -21,6 +21,14 @@ export default function AdminDashboard() {
   const [csvError, setCsvError] = useState("");
   const [actionError, setActionError] = useState("");
   const [fileReplacing, setFileReplacing] = useState(false);
+  const [activeSection, setActiveSection] = useState("categories");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const sections = [
+    { id: "categories", label: "Categories" },
+    { id: "books", label: "Books" },
+    { id: "upload", label: "Bulk Upload" },
+  ];
 
   const fetchCategories = () =>
     fetch(`${API_URL}/categories`).then((res) => {
@@ -198,7 +206,40 @@ export default function AdminDashboard() {
       <Header />
 
       <section className="max-w-4xl mx-auto px-6 py-14">
-        <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 mb-8">Admin Dashboard</h1>
+        <div className="flex items-center justify-between mb-8 relative">
+          <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50">Admin Dashboard</h1>
+
+          <div>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle section menu"
+              className="w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-lg hover:border-[#166534] dark:hover:border-green-500 transition"
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-12 z-10 w-48 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg shadow-md py-2">
+                {sections.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      setActiveSection(s.id);
+                      setMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm transition ${
+                      activeSection === s.id
+                        ? "text-[#166534] dark:text-green-400 font-medium"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {actionError && (
           <div className="mb-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm rounded-lg px-4 py-3">
@@ -207,6 +248,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Categories */}
+        {activeSection === "categories" && (
         <div className="mb-12">
           <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h2>
           <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
@@ -260,8 +302,10 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Books */}
+        {activeSection === "books" && (
         <div className="mb-12">
           <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Books</h2>
           <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
@@ -356,8 +400,10 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Allowed users CSV upload */}
+        {activeSection === "upload" && (
         <div>
           <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Bulk-upload Allowed Users
@@ -387,6 +433,7 @@ export default function AdminDashboard() {
             <p className="text-sm text-red-600 dark:text-red-400 mt-2">{csvError}</p>
           )}
         </div>
+        )}
       </section>
     </div>
   );
