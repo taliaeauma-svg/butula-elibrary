@@ -62,7 +62,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center px-6">
       <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-8 shadow-sm w-full max-w-sm">
-        <h1 className="text-xl font-serif font-bold text-[#166534] dark:text-green-400 mb-1">
+        <h1 className="text-xl font-heading font-bold text-[#166534] dark:text-green-400 mb-1">
           Okame Technical and Vocational College Library
         </h1>
         <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">

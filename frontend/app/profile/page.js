@@ -49,7 +49,7 @@ export default function Profile() {
       <Header />
 
       <section className="max-w-3xl mx-auto px-6 py-14">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-6">My Profile</h1>
+        <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 mb-6">My Profile</h1>
 
         <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6 mb-10">
           <div className="flex items-center gap-3 mb-4">
@@ -57,7 +57,7 @@ export default function Profile() {
               {user.email[0].toUpperCase()}
             </div>
             <div>
-              <div className="font-serif font-semibold text-gray-900 dark:text-gray-50">
+              <div className="font-heading font-semibold text-gray-900 dark:text-gray-50">
                 {profile?.name || user.email}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
@@ -75,7 +75,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Download History</h2>
+        <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Download History</h2>
 
         {downloadsLoading ? (
           <p className="text-sm text-gray-400 dark:text-gray-500">Loading...</p>

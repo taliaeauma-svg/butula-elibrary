@@ -174,7 +174,7 @@ export default function Home() {
               <span className="w-6 h-px bg-[#166534] dark:bg-green-400"></span>
               Est. 2026 · Digital Collection
             </div>
-            <h1 className="text-4xl sm:text-5xl font-serif text-gray-900 dark:text-gray-50 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-heading text-gray-900 dark:text-gray-50 leading-tight mb-4">
               The whole TVET library,<br />
               <span className="italic text-[#166534] dark:text-green-400">in one shelf.</span>
             </h1>
@@ -214,7 +214,7 @@ export default function Home() {
               <div className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 Total Resources
               </div>
-              <div className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mt-1">
+              <div className="text-2xl font-display font-bold text-gray-900 dark:text-gray-50 mt-1">
                 {books.length}
               </div>
               <div className="text-xs text-gray-400 dark:text-gray-500">across {categories.length} categories</div>
@@ -223,7 +223,7 @@ export default function Home() {
               <div className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                 Categories
               </div>
-              <div className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mt-1">
+              <div className="text-2xl font-display font-bold text-gray-900 dark:text-gray-50 mt-1">
                 {categories.length}
               </div>
               <div className="text-xs text-gray-400 dark:text-gray-500">departments covered</div>
@@ -237,7 +237,7 @@ export default function Home() {
             onSubmit={handleSubmit}
             className="mt-8 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6"
           >
-            <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">
+            <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">
               Add New Resource
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -329,7 +329,7 @@ export default function Home() {
         <div className="text-xs font-semibold text-[#166534] dark:text-green-400 uppercase tracking-wide mb-1">
           Collections
         </div>
-        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-6">
+        <h2 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 mb-6">
           Browse by category
         </h2>
 
@@ -367,7 +367,7 @@ export default function Home() {
       {/* Catalog */}
       <section id="library" className="max-w-6xl mx-auto px-6 pb-16">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100">
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100">
             {filterCategory === "all" ? "All Resources" : getCategoryName(parseInt(filterCategory))}
           </h2>
           <div className="flex items-center gap-3">
@@ -413,7 +413,7 @@ export default function Home() {
                   📘
                 </div>
                 <Link href={`/books/${book.id}`}>
-                  <h3 className="font-serif font-semibold text-gray-800 dark:text-gray-100 leading-snug hover:text-[#166534] dark:hover:text-green-400 transition">
+                  <h3 className="font-heading font-semibold text-gray-800 dark:text-gray-100 leading-snug hover:text-[#166534] dark:hover:text-green-400 transition">
                     {book.title}
                   </h3>
                 </Link>

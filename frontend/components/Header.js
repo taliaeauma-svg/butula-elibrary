@@ -36,7 +36,7 @@ export default function Header() {
             📖
           </div>
           <div>
-            <div className="font-serif font-bold text-gray-900 dark:text-gray-50 leading-tight">
+            <div className="font-heading font-bold text-gray-900 dark:text-gray-50 leading-tight">
               Okame Technical and Vocational College Library
             </div>
             <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">

@@ -198,7 +198,7 @@ export default function AdminDashboard() {
       <Header />
 
       <section className="max-w-4xl mx-auto px-6 py-14">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-8">Admin Dashboard</h1>
+        <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 mb-8">Admin Dashboard</h1>
 
         {actionError && (
           <div className="mb-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm rounded-lg px-4 py-3">
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
 
         {/* Categories */}
         <div className="mb-12">
-          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h2>
           <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
             {categories.length === 0 && (
               <p className="p-4 text-sm text-gray-400 dark:text-gray-500">No categories yet.</p>
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
 
         {/* Books */}
         <div className="mb-12">
-          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Books</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Books</h2>
           <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
             {books.length === 0 && (
               <p className="p-4 text-sm text-gray-400 dark:text-gray-500">No books yet.</p>
@@ -359,7 +359,7 @@ export default function AdminDashboard() {
 
         {/* Allowed users CSV upload */}
         <div>
-          <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Bulk-upload Allowed Users
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">

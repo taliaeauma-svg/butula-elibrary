@@ -77,7 +77,7 @@ export default function BookDetail() {
             <div className="w-14 h-14 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-5 text-[#166534] dark:text-green-400 font-bold text-xl">
               📘
             </div>
-            <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 leading-snug">
+            <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 leading-snug">
               {book.title}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">{book.author || "Unknown author"}</p>
