@@ -139,13 +139,13 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 py-14">
         <div className="grid md:grid-cols-3 gap-10 items-start">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 text-[#6d1a2b] text-xs font-semibold uppercase tracking-wide mb-3">
-              <span className="w-6 h-px bg-[#6d1a2b]"></span>
+            <div className="flex items-center gap-2 text-[#166534] text-xs font-semibold uppercase tracking-wide mb-3">
+              <span className="w-6 h-px bg-[#166534]"></span>
               Est. 2026 · Digital Collection
             </div>
             <h1 className="text-4xl sm:text-5xl font-serif text-gray-900 leading-tight mb-4">
               The whole TVET library,<br />
-              <span className="italic text-[#6d1a2b]">in one shelf.</span>
+              <span className="italic text-[#166534]">in one shelf.</span>
             </h1>
             <p className="text-gray-500 mb-6 max-w-lg">
               Browse textbooks, past papers, and teacher notes across every
@@ -158,11 +158,11 @@ export default function Home() {
                 placeholder="Search by title or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                className="flex-1 border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
               />
               <button
                 onClick={handleSearchClick}
-                className="bg-[#6d1a2b] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm"
+                className="bg-[#166534] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm"
               >
                 Search
               </button>
@@ -171,7 +171,7 @@ export default function Home() {
             {user && role === "admin" && (
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="mt-4 text-sm text-[#6d1a2b] font-medium underline"
+                className="mt-4 text-sm text-[#166534] font-medium underline"
               >
                 {showForm ? "Cancel adding resource" : "+ Add a new resource"}
               </button>
@@ -217,7 +217,7 @@ export default function Home() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                 />
               </div>
               <div className="flex-1">
@@ -226,7 +226,7 @@ export default function Home() {
                   type="text"
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                 />
               </div>
               <div className="flex-1">
@@ -234,7 +234,7 @@ export default function Home() {
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#166534]"
                 >
                   <option value="">No category</option>
                   {categories.map((cat) => (
@@ -253,7 +253,7 @@ export default function Home() {
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="bg-[#6d1a2b] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm w-full sm:w-auto"
+                  className="bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm w-full sm:w-auto"
                 >
                   Save
                 </button>
@@ -270,13 +270,13 @@ export default function Home() {
                   placeholder="e.g. Electrical Engineering"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleAddCategory}
-                className="border border-[#6d1a2b] text-[#6d1a2b] font-medium px-4 py-2 rounded-md hover:bg-[#6d1a2b] hover:text-white transition text-sm"
+                className="border border-[#166534] text-[#166534] font-medium px-4 py-2 rounded-md hover:bg-[#166534] hover:text-white transition text-sm"
               >
                 Add Category
               </button>
@@ -287,7 +287,7 @@ export default function Home() {
 
       {/* Browse by category */}
       <section id="categories" className="max-w-6xl mx-auto px-6 pb-14">
-        <div className="text-xs font-semibold text-[#6d1a2b] uppercase tracking-wide mb-1">
+        <div className="text-xs font-semibold text-[#166534] uppercase tracking-wide mb-1">
           Collections
         </div>
         <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">
@@ -302,13 +302,13 @@ export default function Home() {
               <button
                 key={cat.id}
                 onClick={() => setFilterCategory(String(cat.id))}
-                className={`text-left border rounded-lg p-4 hover:border-[#6d1a2b] transition ${
+                className={`text-left border rounded-lg p-4 hover:border-[#166534] transition ${
                   filterCategory === String(cat.id)
-                    ? "border-[#6d1a2b] bg-[#6d1a2b]/5"
+                    ? "border-[#166534] bg-[#166534]/5"
                     : "border-gray-200"
                 }`}
               >
-                <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#6d1a2b] text-sm">
+                <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#166534] text-sm">
                   📁
                 </div>
                 <div className="font-semibold text-gray-800 text-sm leading-snug">
@@ -333,7 +333,7 @@ export default function Home() {
             {filterCategory !== "all" && (
               <button
                 onClick={() => setFilterCategory("all")}
-                className="text-xs text-gray-400 hover:text-[#6d1a2b] underline"
+                className="text-xs text-gray-400 hover:text-[#166534] underline"
               >
                 Clear filter
               </button>
@@ -341,7 +341,7 @@ export default function Home() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="text-sm border border-gray-200 rounded-full px-3 py-1 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+              className="text-sm border border-gray-200 rounded-full px-3 py-1 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#166534]"
             >
               <option value="newest">Newest</option>
               <option value="title">Title A-Z</option>
@@ -362,13 +362,13 @@ export default function Home() {
             {filteredBooks.map((book) => (
               <div
                 key={book.id}
-                className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-[#6d1a2b]/30 transition"
+                className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-[#166534]/30 transition"
               >
-                <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#6d1a2b] font-bold text-sm">
+                <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center mb-3 text-[#166534] font-bold text-sm">
                   📘
                 </div>
                 <Link href={`/books/${book.id}`}>
-                  <h3 className="font-serif font-semibold text-gray-800 leading-snug hover:text-[#6d1a2b] transition">
+                  <h3 className="font-serif font-semibold text-gray-800 leading-snug hover:text-[#166534] transition">
                     {book.title}
                   </h3>
                 </Link>
@@ -376,7 +376,7 @@ export default function Home() {
                   {book.author || "Unknown author"}
                 </p>
                 {getCategoryName(book.category_id) && (
-                  <span className="inline-block mt-2 text-xs bg-[#6d1a2b]/10 text-[#6d1a2b] px-2 py-0.5 rounded-full">
+                  <span className="inline-block mt-2 text-xs bg-[#166534]/10 text-[#166534] px-2 py-0.5 rounded-full">
                     {getCategoryName(book.category_id)}
                   </span>
                 )}
@@ -395,7 +395,7 @@ export default function Home() {
       </section>
 
       <footer className="text-center text-gray-400 text-xs py-8 border-t border-gray-200">
-        Butula E-Library · TVET Digital Resource Center
+        Okame Technical and Vocational College Library · Okame TVC Digital Resource Center
       </footer>
     </div>
   );

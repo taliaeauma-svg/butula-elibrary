@@ -58,7 +58,7 @@ export default function BookDetail() {
       <Header />
 
       <section className="max-w-3xl mx-auto px-6 py-14">
-        <Link href="/#library" className="text-sm text-gray-400 hover:text-[#6d1a2b]">
+        <Link href="/#library" className="text-sm text-gray-400 hover:text-[#166534]">
           ← Back to library
         </Link>
 
@@ -74,7 +74,7 @@ export default function BookDetail() {
 
         {!loading && book && (
           <div className="mt-6 bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-            <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center mb-5 text-[#6d1a2b] font-bold text-xl">
+            <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center mb-5 text-[#166534] font-bold text-xl">
               📘
             </div>
             <h1 className="text-2xl font-serif font-bold text-gray-900 leading-snug">
@@ -84,7 +84,7 @@ export default function BookDetail() {
 
             <div className="flex items-center gap-3 mt-4">
               {category && (
-                <span className="inline-block text-xs bg-[#6d1a2b]/10 text-[#6d1a2b] px-2 py-0.5 rounded-full">
+                <span className="inline-block text-xs bg-[#166534]/10 text-[#166534] px-2 py-0.5 rounded-full">
                   {category.name}
                 </span>
               )}
@@ -96,7 +96,7 @@ export default function BookDetail() {
             {book.file_url ? (
               <button
                 onClick={handleDownload}
-                className="mt-8 bg-[#6d1a2b] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm"
+                className="mt-8 bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm"
               >
                 Download
               </button>
@@ -108,7 +108,7 @@ export default function BookDetail() {
       </section>
 
       <footer className="text-center text-gray-400 text-xs py-8 border-t border-gray-200">
-        Butula E-Library · TVET Digital Resource Center
+        Okame Technical and Vocational College Library · Okame TVC Digital Resource Center
       </footer>
     </div>
   );

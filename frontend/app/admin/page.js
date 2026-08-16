@@ -132,7 +132,7 @@ export default function AdminDashboard() {
         <Header />
         <div className="max-w-4xl mx-auto px-6 py-14 text-center">
           <p className="text-gray-500">You don&apos;t have access to this page.</p>
-          <Link href="/" className="text-[#6d1a2b] text-sm underline mt-2 inline-block">
+          <Link href="/" className="text-[#166534] text-sm underline mt-2 inline-block">
             Back to library
           </Link>
         </div>
@@ -161,11 +161,11 @@ export default function AdminDashboard() {
                     <input
                       value={categoryEditName}
                       onChange={(e) => setCategoryEditName(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                      className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                     />
                     <button
                       onClick={() => saveCategory(cat.id)}
-                      className="text-xs bg-[#6d1a2b] text-white px-3 py-1.5 rounded-md"
+                      className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md"
                     >
                       Save
                     </button>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => startEditCategory(cat)}
-                        className="text-xs text-gray-500 hover:text-[#6d1a2b]"
+                        className="text-xs text-gray-500 hover:text-[#166534]"
                       >
                         Rename
                       </button>
@@ -216,18 +216,18 @@ export default function AdminDashboard() {
                         value={bookEdit.title}
                         onChange={(e) => setBookEdit((p) => ({ ...p, title: e.target.value }))}
                         placeholder="Title"
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                       />
                       <input
                         value={bookEdit.author}
                         onChange={(e) => setBookEdit((p) => ({ ...p, author: e.target.value }))}
                         placeholder="Author"
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
                       />
                       <select
                         value={bookEdit.category_id}
                         onChange={(e) => setBookEdit((p) => ({ ...p, category_id: e.target.value }))}
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+                        className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#166534]"
                       >
                         <option value="">No category</option>
                         {categories.map((cat) => (
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => saveBook(book.id)}
-                        className="text-xs bg-[#6d1a2b] text-white px-3 py-1.5 rounded-md"
+                        className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md"
                       >
                         Save
                       </button>
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => startEditBook(book)}
-                        className="text-xs text-gray-500 hover:text-[#6d1a2b]"
+                        className="text-xs text-gray-500 hover:text-[#166534]"
                       >
                         Edit
                       </button>
@@ -309,7 +309,7 @@ export default function AdminDashboard() {
             <button
               onClick={uploadCsv}
               disabled={!csvFile || csvUploading}
-              className="bg-[#6d1a2b] text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-[#5a1523] transition disabled:opacity-50"
+              className="bg-[#166534] text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-[#14532d] transition disabled:opacity-50"
             >
               {csvUploading ? "Uploading..." : "Upload"}
             </button>

@@ -12,9 +12,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Butula E-Library | TVET Digital Resource Center",
-  description: "Butula E-Library is a digital library for TVET students and teachers — browse textbooks, past papers, and study materials online.",
-  keywords: "Butula E-Library, TVET library, Kenya technical college resources, digital library",
+  title: "Okame Technical and Vocational College Library | Okame TVC Digital Resource Center",
+  description: "Okame Technical and Vocational College Library is a digital library for TVET students and teachers — browse textbooks, past papers, and study materials online.",
+  keywords: "Okame Technical and Vocational College Library, Okame TVC, TVET library, Kenya technical college resources, digital library",
 };
 
 export default function RootLayout({ children }) {

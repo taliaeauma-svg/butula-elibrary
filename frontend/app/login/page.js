@@ -62,8 +62,8 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm w-full max-w-sm">
-        <h1 className="text-xl font-serif font-bold text-[#6d1a2b] mb-1">
-          Butula E-Library
+        <h1 className="text-xl font-serif font-bold text-[#166534] mb-1">
+          Okame Technical and Vocational College Library
         </h1>
         <p className="text-gray-500 text-sm mb-6">
           Sign in with your registered email
@@ -81,7 +81,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
             />
           </div>
 
@@ -97,7 +97,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="welcome2026 (first login)"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6d1a2b]"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534]"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#6d1a2b] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#5a1523] transition text-sm disabled:opacity-50"
+            className="bg-[#166534] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#14532d] transition text-sm disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
