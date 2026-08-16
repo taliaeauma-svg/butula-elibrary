@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
-const API_URL = "https://butula-elibrary-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
 export default function Home() {
   const [books, setBooks] = useState([]);
