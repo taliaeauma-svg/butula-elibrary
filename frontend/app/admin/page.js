@@ -18,22 +18,26 @@ export default function AdminDashboard() {
   const [csvFile, setCsvFile] = useState(null);
   const [csvResult, setCsvResult] = useState(null);
   const [csvUploading, setCsvUploading] = useState(false);
+  const [csvError, setCsvError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [fileReplacing, setFileReplacing] = useState(false);
 
-  const fetchCategories = () => {
-    fetch(`${API_URL}/categories`)
-      .then((res) => res.json())
-      .then(setCategories);
-  };
+  const fetchCategories = () =>
+    fetch(`${API_URL}/categories`).then((res) => {
+      if (!res.ok) throw new Error("Failed to load categories");
+      return res.json();
+    }).then(setCategories);
 
-  const fetchBooks = () => {
-    fetch(`${API_URL}/books`)
-      .then((res) => res.json())
-      .then(setBooks);
-  };
+  const fetchBooks = () =>
+    fetch(`${API_URL}/books`).then((res) => {
+      if (!res.ok) throw new Error("Failed to load books");
+      return res.json();
+    }).then(setBooks);
 
   useEffect(() => {
-    fetchCategories();
-    fetchBooks();
+    Promise.all([fetchCategories(), fetchBooks()]).catch(() =>
+      setActionError("Couldn't load categories/books. Please refresh the page.")
+    );
   }, []);
 
   const getCategoryName = (id) => categories.find((c) => c.id === id)?.name || null;
@@ -41,23 +45,38 @@ export default function AdminDashboard() {
   const startEditCategory = (cat) => {
     setEditingCategoryId(cat.id);
     setCategoryEditName(cat.name);
+    setActionError("");
   };
 
   const saveCategory = async (id) => {
-    await fetch(`${API_URL}/categories/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: categoryEditName }),
-    });
-    setEditingCategoryId(null);
-    fetchCategories();
+    const name = categoryEditName.trim();
+    if (!name) return;
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/categories/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("Failed to rename category");
+      setEditingCategoryId(null);
+      fetchCategories();
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const deleteCategory = async (id) => {
     if (!window.confirm("Delete this category? Books in it will become uncategorized.")) return;
-    await fetch(`${API_URL}/categories/${id}`, { method: "DELETE" });
-    fetchCategories();
-    fetchBooks();
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/categories/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete category");
+      fetchCategories();
+      fetchBooks();
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const startEditBook = (book) => {
@@ -68,53 +87,87 @@ export default function AdminDashboard() {
       category_id: book.category_id || "",
       file_url: book.file_url || "",
     });
+    setActionError("");
   };
 
   const handleReplaceFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
-    const data = await res.json();
-    setBookEdit((prev) => ({ ...prev, file_url: data.file_url }));
+    setActionError("");
+    setFileReplacing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "File upload failed");
+      }
+      const data = await res.json();
+      setBookEdit((prev) => ({ ...prev, file_url: data.file_url }));
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setFileReplacing(false);
+    }
   };
 
   const saveBook = async (id) => {
-    await fetch(`${API_URL}/books/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: bookEdit.title,
-        author: bookEdit.author,
-        category_id: bookEdit.category_id ? parseInt(bookEdit.category_id) : null,
-        file_url: bookEdit.file_url,
-      }),
-    });
-    setEditingBookId(null);
-    fetchBooks();
+    const title = bookEdit.title.trim();
+    if (!title) return;
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/books/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          author: bookEdit.author.trim(),
+          category_id: bookEdit.category_id ? parseInt(bookEdit.category_id) : null,
+          file_url: bookEdit.file_url,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save book");
+      setEditingBookId(null);
+      fetchBooks();
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const deleteBook = async (id) => {
     if (!window.confirm("Delete this book? This cannot be undone.")) return;
-    await fetch(`${API_URL}/books/${id}`, { method: "DELETE" });
-    fetchBooks();
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/books/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete book");
+      fetchBooks();
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const uploadCsv = async () => {
     if (!csvFile) return;
     setCsvUploading(true);
     setCsvResult(null);
-    const formData = new FormData();
-    formData.append("file", csvFile);
-    const res = await fetch(`${API_URL}/allowed-users/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    setCsvResult(data);
-    setCsvUploading(false);
-    setCsvFile(null);
+    setCsvError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", csvFile);
+      const res = await fetch(`${API_URL}/allowed-users/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed. Please check the file and try again.");
+      const data = await res.json();
+      setCsvResult(data);
+      setCsvFile(null);
+    } catch (err) {
+      setCsvError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setCsvUploading(false);
+    }
   };
 
   if (authLoading) {
@@ -147,6 +200,12 @@ export default function AdminDashboard() {
       <section className="max-w-4xl mx-auto px-6 py-14">
         <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-50 mb-8">Admin Dashboard</h1>
 
+        {actionError && (
+          <div className="mb-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm rounded-lg px-4 py-3">
+            {actionError}
+          </div>
+        )}
+
         {/* Categories */}
         <div className="mb-12">
           <h2 className="text-lg font-serif font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h2>
@@ -161,11 +220,13 @@ export default function AdminDashboard() {
                     <input
                       value={categoryEditName}
                       onChange={(e) => setCategoryEditName(e.target.value)}
+                      required
                       className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                     />
                     <button
                       onClick={() => saveCategory(cat.id)}
-                      className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md"
+                      disabled={!categoryEditName.trim()}
+                      className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md disabled:opacity-50"
                     >
                       Save
                     </button>
@@ -216,6 +277,7 @@ export default function AdminDashboard() {
                         value={bookEdit.title}
                         onChange={(e) => setBookEdit((p) => ({ ...p, title: e.target.value }))}
                         placeholder="Title"
+                        required
                         className="flex-1 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500"
                       />
                       <input
@@ -238,9 +300,12 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <label className="text-xs text-gray-500 dark:text-gray-400">
                         Replace file:
-                        <input type="file" onChange={handleReplaceFile} className="ml-2 text-xs" />
+                        <input type="file" onChange={handleReplaceFile} disabled={fileReplacing} className="ml-2 text-xs" />
                       </label>
-                      {bookEdit.file_url && (
+                      {fileReplacing && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Uploading...</span>
+                      )}
+                      {!fileReplacing && bookEdit.file_url && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
                           current: {bookEdit.file_url.split("/").pop()}
                         </span>
@@ -249,7 +314,8 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => saveBook(book.id)}
-                        className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md"
+                        disabled={!bookEdit.title.trim() || fileReplacing}
+                        className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md disabled:opacity-50"
                       >
                         Save
                       </button>
@@ -316,6 +382,9 @@ export default function AdminDashboard() {
           </div>
           {csvResult && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Added {csvResult.added} new user(s).</p>
+          )}
+          {csvError && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{csvError}</p>
           )}
         </div>
       </section>

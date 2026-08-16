@@ -18,73 +18,98 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [categoryError, setCategoryError] = useState("");
   const { user, role } = useAuth();
 
-  const fetchBooks = () => {
-    fetch(`${API_URL}/books`)
-      .then((res) => res.json())
-      .then((data) => setBooks(data));
-  };
+  const fetchBooks = () =>
+    fetch(`${API_URL}/books`).then((res) => {
+      if (!res.ok) throw new Error("Failed to load books");
+      return res.json();
+    }).then(setBooks);
 
-  const fetchCategories = () => {
-    fetch(`${API_URL}/categories`)
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
-  };
+  const fetchCategories = () =>
+    fetch(`${API_URL}/categories`).then((res) => {
+      if (!res.ok) throw new Error("Failed to load categories");
+      return res.json();
+    }).then(setCategories);
 
   useEffect(() => {
-    fetchBooks();
-    fetchCategories();
+    setLoading(true);
+    setLoadError("");
+    Promise.all([fetchBooks(), fetchCategories()])
+      .catch(() => setLoadError("Couldn't load the library right now. Please try refreshing the page."))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let fileUrl = "";
+    setFormError("");
+    setFormSubmitting(true);
 
-    if (window.__pendingFile) {
-      const formData = new FormData();
-      formData.append("file", window.__pendingFile);
-      const uploadRes = await fetch(`${API_URL}/upload`, {
+    try {
+      let fileUrl = "";
+
+      if (window.__pendingFile) {
+        const formData = new FormData();
+        formData.append("file", window.__pendingFile);
+        const uploadRes = await fetch(`${API_URL}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json().catch(() => ({}));
+          throw new Error(err.detail || "File upload failed");
+        }
+        const uploadData = await uploadRes.json();
+        fileUrl = uploadData.file_url;
+      }
+
+      const bookRes = await fetch(`${API_URL}/books`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          author: author.trim(),
+          category_id: categoryId ? parseInt(categoryId) : null,
+          file_url: fileUrl,
+        }),
       });
-      const uploadData = await uploadRes.json();
-      fileUrl = uploadData.file_url;
+      if (!bookRes.ok) throw new Error("Failed to save the resource");
+
+      setTitle("");
+      setAuthor("");
+      setCategoryId("");
+      window.__pendingFile = null;
+      setShowForm(false);
+      fetchBooks();
+    } catch (err) {
+      setFormError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setFormSubmitting(false);
     }
-
-    await fetch(`${API_URL}/books`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        author,
-        category_id: categoryId ? parseInt(categoryId) : null,
-        file_url: fileUrl,
-      }),
-    });
-
-    setTitle("");
-    setAuthor("");
-    setCategoryId("");
-    window.__pendingFile = null;
-    setShowForm(false);
-    fetchBooks();
   };
 
-  const handleAddCategory = (e) => {
+  const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCategory.trim()) return;
+    setCategoryError("");
 
-    fetch(`${API_URL}/categories`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newCategory }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setNewCategory("");
-        fetchCategories();
+    try {
+      const res = await fetch(`${API_URL}/categories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCategory.trim() }),
       });
+      if (!res.ok) throw new Error("Failed to add category");
+      setNewCategory("");
+      fetchCategories();
+    } catch (err) {
+      setCategoryError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const handleDownload = async (book) => {
@@ -134,6 +159,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <Header />
+
+      {loadError && (
+        <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm text-center py-2 px-6">
+          {loadError}
+        </div>
+      )}
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 py-14">
@@ -253,12 +284,17 @@ export default function Home() {
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition text-sm w-full sm:w-auto"
+                  disabled={formSubmitting}
+                  className="bg-[#166534] text-white font-medium px-6 py-2.5 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition text-sm w-full sm:w-auto disabled:opacity-50"
                 >
-                  Save
+                  {formSubmitting ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
+
+            {formError && (
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">{formError}</p>
+            )}
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-4 flex items-end gap-3">
               <div className="flex-1">
@@ -281,6 +317,9 @@ export default function Home() {
                 Add Category
               </button>
             </div>
+            {categoryError && (
+              <p className="text-red-600 dark:text-red-400 text-sm mt-2">{categoryError}</p>
+            )}
           </form>
         )}
       </section>
@@ -294,7 +333,9 @@ export default function Home() {
           Browse by category
         </h2>
 
-        {categories.length === 0 ? (
+        {loading ? (
+          <p className="text-gray-400 dark:text-gray-500 text-sm">Loading...</p>
+        ) : categories.length === 0 ? (
           <p className="text-gray-400 dark:text-gray-500 text-sm">No categories yet.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -353,7 +394,11 @@ export default function Home() {
           </div>
         </div>
 
-        {filteredBooks.length === 0 ? (
+        {loading ? (
+          <div className="bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg py-16 text-center text-gray-400 dark:text-gray-500">
+            Loading...
+          </div>
+        ) : filteredBooks.length === 0 ? (
           <div className="bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg py-16 text-center text-gray-400 dark:text-gray-500">
             No resources found.
           </div>
