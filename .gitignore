@@ -10,3 +10,4 @@ frontend/.next/
 
 # General
 .DS_Store
+.claude/
