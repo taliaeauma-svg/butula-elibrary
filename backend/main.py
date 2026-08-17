@@ -18,6 +18,7 @@ import models
 import schemas
 import csv
 import io
+from firebase_auth import get_current_user, require_admin, verify_firebase_token, require_self_or_admin
 
 Base.metadata.create_all(bind=engine)
 
@@ -52,7 +53,7 @@ def get_books(db: Session = Depends(get_db)):
     return books
 
 @app.post("/books", response_model=schemas.BookOut)
-def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
+def create_book(book: schemas.BookCreate, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     new_book = models.Book(**book.dict())
     db.add(new_book)
     db.commit()
@@ -65,7 +66,7 @@ def get_categories(db: Session = Depends(get_db)):
 
 
 @app.post("/categories", response_model=schemas.CategoryOut)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     new_category = models.Category(**category.dict())
     db.add(new_category)
     db.commit()
@@ -74,7 +75,7 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
 
 
 @app.put("/categories/{category_id}", response_model=schemas.CategoryOut)
-def update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+def update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     existing = db.query(models.Category).filter(models.Category.id == category_id).first()
     if not existing:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -85,7 +86,7 @@ def update_category(category_id: int, category: schemas.CategoryCreate, db: Sess
 
 
 @app.delete("/categories/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(category_id: int, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     existing = db.query(models.Category).filter(models.Category.id == category_id).first()
     if not existing:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -105,7 +106,7 @@ def get_book(book_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/books/{book_id}", response_model=schemas.BookOut)
-def update_book(book_id: int, updated_book: schemas.BookCreate, db: Session = Depends(get_db)):
+def update_book(book_id: int, updated_book: schemas.BookCreate, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     book = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -117,7 +118,7 @@ def update_book(book_id: int, updated_book: schemas.BookCreate, db: Session = De
 
 
 @app.delete("/books/{book_id}")
-def delete_book(book_id: int, db: Session = Depends(get_db)):
+def delete_book(book_id: int, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     book = db.query(models.Book).filter(models.Book.id == book_id).first()
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -126,28 +127,16 @@ def delete_book(book_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Book deleted successfully"}
 
-@app.post("/users", response_model=schemas.UserOut)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(models.User).filter(models.User.email == user.email).first()
-    if existing:
-        return existing
-
-    new_user = models.User(name=user.name, email=user.email, role="student")
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
 @app.get("/users/{email}", response_model=schemas.UserOut)
-def get_user(email: str, db: Session = Depends(get_db)):
+def get_user(email: str, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    require_self_or_admin(email, current)
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @app.put("/users/{email}/role")
-def update_role(email: str, role: str, db: Session = Depends(get_db)):
+def update_role(email: str, role: str, db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -157,7 +146,7 @@ def update_role(email: str, role: str, db: Session = Depends(get_db)):
     return user
 
 @app.post("/upload")
-def upload_file(file: UploadFile = File(...)):
+def upload_file(file: UploadFile = File(...), current: models.User = Depends(get_current_user)):
     file_extension = file.filename.split(".")[-1]
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
 
@@ -180,20 +169,19 @@ def get_download_url(filename: str):
 
 
 @app.post("/downloads")
-def log_download(payload: dict, db: Session = Depends(get_db)):
-    email = payload.get("email")
+def log_download(payload: dict, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
     book_id = payload.get("book_id")
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user or not book_id:
+    if not book_id:
         return {"logged": False}
 
-    db.add(models.Download(user_id=user.id, book_id=book_id))
+    db.add(models.Download(user_id=current.id, book_id=book_id))
     db.commit()
     return {"logged": True}
 
 
 @app.get("/downloads/{email}", response_model=List[schemas.DownloadOut])
-def get_download_history(email: str, db: Session = Depends(get_db)):
+def get_download_history(email: str, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    require_self_or_admin(email, current)
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -217,7 +205,7 @@ def get_download_history(email: str, db: Session = Depends(get_db)):
     ]
 
 @app.post("/allowed-users/upload")
-async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     content = await file.read()
     decoded = content.decode("utf-8")
     reader = csv.DictReader(io.StringIO(decoded))
@@ -260,8 +248,7 @@ def check_allowed_user(admission_number: str, db: Session = Depends(get_db)):
 
 
 @app.post("/students/sync", response_model=schemas.UserOut)
-def sync_student_user(payload: dict, db: Session = Depends(get_db)):
-    email = payload.get("email")
+def sync_student_user(db: Session = Depends(get_db), email: str = Depends(verify_firebase_token)):
     allowed = db.query(models.AllowedUser).filter(
         models.AllowedUser.email == email
     ).first()

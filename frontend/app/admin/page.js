@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "../../components/Header";
-import { useAuth } from "../../lib/useAuth";
+import { useAuth, authedFetch } from "../../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
     if (!name) return;
     setActionError("");
     try {
-      const res = await fetch(`${API_URL}/categories/${id}`, {
+      const res = await authedFetch(`${API_URL}/categories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this category? Books in it will become uncategorized.")) return;
     setActionError("");
     try {
-      const res = await fetch(`${API_URL}/categories/${id}`, { method: "DELETE" });
+      const res = await authedFetch(`${API_URL}/categories/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete category");
       fetchCategories();
       fetchBooks();
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+      const res = await authedFetch(`${API_URL}/upload`, { method: "POST", body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || "File upload failed");
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+      const res = await authedFetch(`${API_URL}/upload`, { method: "POST", body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || "Cover image upload failed");
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
     if (!title) return;
     setActionError("");
     try {
-      const res = await fetch(`${API_URL}/books/${id}`, {
+      const res = await authedFetch(`${API_URL}/books/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this book? This cannot be undone.")) return;
     setActionError("");
     try {
-      const res = await fetch(`${API_URL}/books/${id}`, { method: "DELETE" });
+      const res = await authedFetch(`${API_URL}/books/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete book");
       fetchBooks();
     } catch (err) {
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData();
       formData.append("file", csvFile);
-      const res = await fetch(`${API_URL}/allowed-users/upload`, {
+      const res = await authedFetch(`${API_URL}/allowed-users/upload`, {
         method: "POST",
         body: formData,
       });

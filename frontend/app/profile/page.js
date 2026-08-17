@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../../components/Header";
-import { useAuth } from "../../lib/useAuth";
+import { useAuth, authedFetch } from "../../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
@@ -23,12 +23,12 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`${API_URL}/users/${user.email}`)
+    authedFetch(`${API_URL}/users/${user.email}`)
       .then((res) => res.json())
       .then(setProfile)
       .catch(() => setProfile(null));
 
-    fetch(`${API_URL}/downloads/${user.email}`)
+    authedFetch(`${API_URL}/downloads/${user.email}`)
       .then((res) => (res.ok ? res.json() : []))
       .then(setDownloads)
       .catch(() => setDownloads([]))

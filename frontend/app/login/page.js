@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../../lib/firebase";
+import { authedFetch } from "../../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 const DEFAULT_PASSWORD = "welcome2026";
@@ -45,11 +46,7 @@ export default function Login() {
         }
       }
 
-      await fetch(`${API_URL}/students/sync`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail }),
-      });
+      await authedFetch(`${API_URL}/students/sync`, { method: "POST" });
 
       router.push("/");
     } catch (err) {

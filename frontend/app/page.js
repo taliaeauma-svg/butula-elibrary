@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import { useAuth } from "../lib/useAuth";
+import { useAuth, authedFetch } from "../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
@@ -70,7 +70,7 @@ export default function Home() {
       if (window.__pendingFile) {
         const formData = new FormData();
         formData.append("file", window.__pendingFile);
-        const uploadRes = await fetch(`${API_URL}/upload`, {
+        const uploadRes = await authedFetch(`${API_URL}/upload`, {
           method: "POST",
           body: formData,
         });
@@ -85,7 +85,7 @@ export default function Home() {
       if (window.__pendingCoverFile) {
         const coverFormData = new FormData();
         coverFormData.append("file", window.__pendingCoverFile);
-        const coverUploadRes = await fetch(`${API_URL}/upload`, {
+        const coverUploadRes = await authedFetch(`${API_URL}/upload`, {
           method: "POST",
           body: coverFormData,
         });
@@ -97,7 +97,7 @@ export default function Home() {
         coverUrl = coverUploadData.file_url;
       }
 
-      const bookRes = await fetch(`${API_URL}/books`, {
+      const bookRes = await authedFetch(`${API_URL}/books`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function Home() {
     setCategoryError("");
 
     try {
-      const res = await fetch(`${API_URL}/categories`, {
+      const res = await authedFetch(`${API_URL}/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newCategory.trim() }),
@@ -151,10 +151,10 @@ export default function Home() {
     window.open(data.download_url, "_blank");
 
     if (user) {
-      fetch(`${API_URL}/downloads`, {
+      authedFetch(`${API_URL}/downloads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, book_id: book.id }),
+        body: JSON.stringify({ book_id: book.id }),
       }).catch(() => {});
     }
   };

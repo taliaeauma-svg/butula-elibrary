@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "../../../components/Header";
-import { useAuth } from "../../../lib/useAuth";
+import { useAuth, authedFetch } from "../../../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
@@ -53,10 +53,10 @@ export default function BookDetail() {
     window.open(data.download_url, "_blank");
 
     if (user) {
-      fetch(`${API_URL}/downloads`, {
+      authedFetch(`${API_URL}/downloads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, book_id: book.id }),
+        body: JSON.stringify({ book_id: book.id }),
       }).catch(() => {});
     }
   };
