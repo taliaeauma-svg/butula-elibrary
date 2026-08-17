@@ -7,6 +7,14 @@ import { useAuth, authedFetch } from "../../../lib/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://butula-elibrary-production.up.railway.app";
 
+const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov", "m4v"];
+
+function isVideoFile(fileUrl) {
+  if (!fileUrl) return false;
+  const ext = fileUrl.split(".").pop().toLowerCase();
+  return VIDEO_EXTENSIONS.includes(ext);
+}
+
 export default function Portfolio() {
   const { email } = useParams();
   const { user, role, loading: authLoading } = useAuth();
@@ -29,6 +37,7 @@ export default function Portfolio() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [itemEdit, setItemEdit] = useState({ type: "project", title: "", description: "", file_url: "" });
   const [itemFileReplacing, setItemFileReplacing] = useState(false);
+  const [videoUrls, setVideoUrls] = useState({});
 
   const decodedEmail = decodeURIComponent(email || "");
   const isOwner = user && user.email === decodedEmail;
@@ -64,6 +73,19 @@ export default function Portfolio() {
     if (!user || !decodedEmail) return;
     fetchPortfolio();
   }, [user, decodedEmail]);
+
+  useEffect(() => {
+    (portfolio?.items || [])
+      .filter((item) => isVideoFile(item.file_url) && !(item.id in videoUrls))
+      .forEach((item) => {
+        authedFetch(`${API_URL}/portfolio/download/${item.id}`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data) setVideoUrls((prev) => ({ ...prev, [item.id]: data.download_url }));
+          })
+          .catch(() => {});
+      });
+  }, [portfolio]);
 
   const saveResume = async () => {
     setActionError("");
@@ -337,6 +359,7 @@ export default function Portfolio() {
                   onDelete={() => deleteItem(item.id)}
                   onReplaceFile={handleReplaceItemFile}
                   onDownload={() => handleDownload(item.id)}
+                  videoUrl={videoUrls[item.id]}
                 />
               ))}
             </div>
@@ -365,6 +388,7 @@ export default function Portfolio() {
                   onDelete={() => deleteItem(item.id)}
                   onReplaceFile={handleReplaceItemFile}
                   onDownload={() => handleDownload(item.id)}
+                  videoUrl={videoUrls[item.id]}
                 />
               ))}
             </div>
@@ -388,6 +412,7 @@ function PortfolioItemRow({
   onDelete,
   onReplaceFile,
   onDownload,
+  videoUrl,
 }) {
   if (editing) {
     return (
@@ -427,30 +452,47 @@ function PortfolioItemRow({
     );
   }
 
+  const isVideo = isVideoFile(item.file_url);
+
   return (
-    <div className="p-4 flex items-center justify-between gap-3">
-      <div>
-        <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{item.title}</div>
-        {item.description && (
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.description}</div>
-        )}
-      </div>
-      <div className="flex items-center gap-3">
-        {item.file_url && (
-          <button onClick={onDownload} className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400">
-            Download
-          </button>
-        )}
-        {isOwner && (
-          <>
-            <button onClick={onEdit} className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400">
-              Edit
+    <div className="p-4 flex flex-col gap-3">
+      {isVideo && (
+        videoUrl ? (
+          <video
+            controls
+            className="w-full max-h-80 rounded-md bg-black"
+            src={videoUrl}
+          />
+        ) : (
+          <div className="w-full h-40 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs text-gray-400 dark:text-gray-500">
+            Loading video...
+          </div>
+        )
+      )}
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{item.title}</div>
+          {item.description && (
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.description}</div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {item.file_url && !isVideo && (
+            <button onClick={onDownload} className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400">
+              Download
             </button>
-            <button onClick={onDelete} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400">
-              Delete
-            </button>
-          </>
-        )}
+          )}
+          {isOwner && (
+            <>
+              <button onClick={onEdit} className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#166534] dark:hover:text-green-400">
+                Edit
+              </button>
+              <button onClick={onDelete} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400">
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
