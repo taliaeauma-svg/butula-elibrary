@@ -12,13 +12,22 @@ import uuid
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from database import engine, Base, SessionLocal
 import models
 import schemas
 import csv
 import io
-from firebase_auth import get_current_user, require_admin, verify_firebase_token, require_self_or_admin
+from firebase_auth import (
+    get_current_user,
+    require_admin,
+    verify_firebase_token,
+    require_self_or_admin,
+    require_teacher_or_admin,
+    require_self_or_staff,
+    require_owner_id_or_admin,
+    require_owner_id_or_staff,
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -127,6 +136,14 @@ def delete_book(book_id: int, db: Session = Depends(get_db), admin: models.User 
     db.commit()
     return {"message": "Book deleted successfully"}
 
+@app.get("/users", response_model=List[schemas.UserOut])
+def list_users(role: Optional[str] = None, db: Session = Depends(get_db), staff: models.User = Depends(require_teacher_or_admin)):
+    query = db.query(models.User)
+    if role:
+        query = query.filter(models.User.role == role)
+    return query.all()
+
+
 @app.get("/users/{email}", response_model=schemas.UserOut)
 def get_user(email: str, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
     require_self_or_admin(email, current)
@@ -141,6 +158,19 @@ def update_role(email: str, role: str, db: Session = Depends(get_db), admin: mod
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user.role = role
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.put("/users/{email}/resume", response_model=schemas.UserOut)
+def update_resume(email: str, resume: schemas.ResumeUpdate, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    require_self_or_admin(email, current)
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.bio = resume.bio
+    user.skills = resume.skills
     db.commit()
     db.refresh(user)
     return user
@@ -203,6 +233,71 @@ def get_download_history(email: str, db: Session = Depends(get_db), current: mod
         )
         for download, book in rows
     ]
+
+
+@app.get("/portfolio/{email}", response_model=schemas.PortfolioOut)
+def get_portfolio(email: str, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    require_self_or_staff(email, current)
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    items = (
+        db.query(models.PortfolioItem)
+        .filter(models.PortfolioItem.user_id == user.id)
+        .order_by(models.PortfolioItem.created_at.desc())
+        .all()
+    )
+    return schemas.PortfolioOut(bio=user.bio, skills=user.skills, items=items)
+
+
+@app.post("/portfolio/items", response_model=schemas.PortfolioItemOut)
+def create_portfolio_item(item: schemas.PortfolioItemCreate, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    new_item = models.PortfolioItem(user_id=current.id, **item.dict())
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item
+
+
+@app.put("/portfolio/items/{item_id}", response_model=schemas.PortfolioItemOut)
+def update_portfolio_item(item_id: int, item: schemas.PortfolioItemCreate, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    existing = db.query(models.PortfolioItem).filter(models.PortfolioItem.id == item_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Portfolio item not found")
+    require_owner_id_or_admin(existing.user_id, current)
+    for key, value in item.dict().items():
+        setattr(existing, key, value)
+    db.commit()
+    db.refresh(existing)
+    return existing
+
+
+@app.delete("/portfolio/items/{item_id}")
+def delete_portfolio_item(item_id: int, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    existing = db.query(models.PortfolioItem).filter(models.PortfolioItem.id == item_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Portfolio item not found")
+    require_owner_id_or_admin(existing.user_id, current)
+    db.delete(existing)
+    db.commit()
+    return {"message": "Portfolio item deleted successfully"}
+
+
+@app.get("/portfolio/download/{item_id}")
+def get_portfolio_download_url(item_id: int, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    item = db.query(models.PortfolioItem).filter(models.PortfolioItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Portfolio item not found")
+    require_owner_id_or_staff(item.user_id, current)
+    if not item.file_url:
+        raise HTTPException(status_code=404, detail="No file attached to this item")
+    filename = item.file_url.split("/").pop()
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": R2_BUCKET_NAME, "Key": filename},
+        ExpiresIn=3600,
+    )
+    return {"download_url": url}
 
 @app.post("/allowed-users/upload")
 async def upload_allowed_users(file: UploadFile = File(...), db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
@@ -275,7 +370,7 @@ def check_allowed_by_email(email: str, db: Session = Depends(get_db)):
     return user
 
 @app.post("/admin/migrate-add-email-column")
-def migrate_add_email_column(db: Session = Depends(get_db)):
+def migrate_add_email_column(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     from sqlalchemy import text, inspect
     columns = [c["name"] for c in inspect(db.bind).get_columns("allowed_users")]
     if "email" not in columns:
@@ -288,10 +383,22 @@ def migrate_add_email_column(db: Session = Depends(get_db)):
 
 
 @app.post("/admin/migrate-add-cover-column")
-def migrate_add_cover_column(db: Session = Depends(get_db)):
+def migrate_add_cover_column(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
     from sqlalchemy import text, inspect
     columns = [c["name"] for c in inspect(db.bind).get_columns("books")]
     if "cover_url" not in columns:
         db.execute(text("ALTER TABLE books ADD COLUMN cover_url VARCHAR;"))
+    db.commit()
+    return {"status": "done"}
+
+
+@app.post("/admin/migrate-add-resume-columns")
+def migrate_add_resume_columns(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
+    from sqlalchemy import text, inspect
+    columns = [c["name"] for c in inspect(db.bind).get_columns("users")]
+    if "bio" not in columns:
+        db.execute(text("ALTER TABLE users ADD COLUMN bio VARCHAR;"))
+    if "skills" not in columns:
+        db.execute(text("ALTER TABLE users ADD COLUMN skills VARCHAR;"))
     db.commit()
     return {"status": "done"}

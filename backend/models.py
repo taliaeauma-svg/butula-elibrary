@@ -10,6 +10,8 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     role = Column(String, default="student")
     department = Column(String)
+    bio = Column(String)
+    skills = Column(String)
 
 
 class Category(Base):
@@ -48,3 +50,15 @@ class Download(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     book_id = Column(Integer, ForeignKey("books.id"), nullable=False)
     downloaded_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PortfolioItem(Base):
+    __tablename__ = "portfolio_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String)
+    file_url = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Literal
 
 
 class BookOut(BaseModel):
@@ -40,6 +40,8 @@ class UserOut(BaseModel):
     email: str
     role: str
     department: Optional[str] = None
+    bio: Optional[str] = None
+    skills: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -59,3 +61,29 @@ class DownloadOut(BaseModel):
     title: str
     author: Optional[str] = None
     downloaded_at: datetime
+
+class PortfolioItemCreate(BaseModel):
+    type: Literal["project", "certificate"]
+    title: str
+    description: Optional[str] = None
+    file_url: Optional[str] = None
+
+class PortfolioItemOut(BaseModel):
+    id: int
+    type: str
+    title: str
+    description: Optional[str] = None
+    file_url: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PortfolioOut(BaseModel):
+    bio: Optional[str] = None
+    skills: Optional[str] = None
+    items: List[PortfolioItemOut]
+
+class ResumeUpdate(BaseModel):
+    bio: Optional[str] = None
+    skills: Optional[str] = None

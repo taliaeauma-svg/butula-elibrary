@@ -69,6 +69,27 @@ def require_admin(current: models.User = Depends(get_current_user)) -> models.Us
     return current
 
 
+def require_teacher_or_admin(current: models.User = Depends(get_current_user)) -> models.User:
+    if current.role not in ("teacher", "admin"):
+        raise HTTPException(status_code=403, detail="Teacher or admin access required")
+    return current
+
+
 def require_self_or_admin(path_email: str, current: models.User):
     if current.email != path_email and current.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+
+def require_self_or_staff(path_email: str, current: models.User):
+    if current.email != path_email and current.role not in ("teacher", "admin"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+
+def require_owner_id_or_admin(owner_id: int, current: models.User):
+    if current.id != owner_id and current.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+
+def require_owner_id_or_staff(owner_id: int, current: models.User):
+    if current.id != owner_id and current.role not in ("teacher", "admin"):
         raise HTTPException(status_code=403, detail="Not authorized")

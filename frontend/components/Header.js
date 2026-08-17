@@ -22,11 +22,19 @@ export default function Header() {
       {user && (
         <Link href="/profile" className="hover:text-[#166534] dark:hover:text-green-400">Profile</Link>
       )}
+      {user && (
+        <Link href={`/portfolio/${user.email}`} className="hover:text-[#166534] dark:hover:text-green-400">Portfolio</Link>
+      )}
+      {user && (role === "admin" || role === "teacher") && (
+        <Link href="/portfolios" className="hover:text-[#166534] dark:hover:text-green-400">Students</Link>
+      )}
       {user && role === "admin" && (
         <Link href="/admin" className="hover:text-[#166534] dark:hover:text-green-400">Admin</Link>
       )}
     </>
   );
+
+  const roleLabel = role === "admin" ? "Admin" : role === "teacher" ? "Teacher" : "Library User";
 
   return (
     <header className="border-b border-gray-200 dark:border-gray-800">
@@ -63,7 +71,7 @@ export default function Header() {
             <div className="hidden md:flex items-center gap-2">
               <div className="text-right hidden sm:block">
                 <div className="text-xs text-gray-400 dark:text-gray-500 leading-none">
-                  {role === "admin" ? "Admin" : "Library User"}
+                  {roleLabel}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200 leading-tight">{user.email}</div>
               </div>

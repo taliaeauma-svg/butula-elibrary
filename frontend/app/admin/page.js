@@ -24,11 +24,14 @@ export default function AdminDashboard() {
   const [fileReplacing, setFileReplacing] = useState(false);
   const [activeSection, setActiveSection] = useState("categories");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [roleUpdating, setRoleUpdating] = useState(null);
 
   const sections = [
     { id: "categories", label: "Categories" },
     { id: "books", label: "Books" },
     { id: "upload", label: "Bulk Upload" },
+    { id: "users", label: "Users" },
   ];
 
   const fetchCategories = () =>
@@ -43,11 +46,31 @@ export default function AdminDashboard() {
       return res.json();
     }).then(setBooks);
 
+  const fetchUsers = () =>
+    authedFetch(`${API_URL}/users`).then((res) => {
+      if (!res.ok) throw new Error("Failed to load users");
+      return res.json();
+    }).then(setUsers);
+
   useEffect(() => {
-    Promise.all([fetchCategories(), fetchBooks()]).catch(() =>
-      setActionError("Couldn't load categories/books. Please refresh the page.")
+    Promise.all([fetchCategories(), fetchBooks(), fetchUsers()]).catch(() =>
+      setActionError("Couldn't load categories/books/users. Please refresh the page.")
     );
   }, []);
+
+  const changeRole = async (email, newRole) => {
+    setActionError("");
+    setRoleUpdating(email);
+    try {
+      const res = await authedFetch(`${API_URL}/users/${email}/role?role=${newRole}`, { method: "PUT" });
+      if (!res.ok) throw new Error("Failed to update role");
+      fetchUsers();
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setRoleUpdating(null);
+    }
+  };
 
   const getCategoryName = (id) => categories.find((c) => c.id === id)?.name || null;
 
@@ -471,6 +494,36 @@ export default function AdminDashboard() {
           {csvError && (
             <p className="text-sm text-red-600 dark:text-red-400 mt-2">{csvError}</p>
           )}
+        </div>
+        )}
+
+        {/* Users */}
+        {activeSection === "users" && (
+        <div>
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Users</h2>
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
+            {users.length === 0 && (
+              <p className="p-4 text-sm text-gray-400 dark:text-gray-500">No users yet.</p>
+            )}
+            {users.map((u) => (
+              <div key={u.id} className="p-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm text-gray-700 dark:text-gray-200">{u.name}</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500">{u.email}</div>
+                </div>
+                <select
+                  value={u.role}
+                  onChange={(e) => changeRole(u.email, e.target.value)}
+                  disabled={roleUpdating === u.email}
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#166534] dark:focus:ring-green-500 disabled:opacity-50"
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            ))}
+          </div>
         </div>
         )}
       </section>
