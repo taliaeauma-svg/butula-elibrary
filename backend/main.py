@@ -1,6 +1,9 @@
 import os
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+except (ImportError, ModuleNotFoundError, Exception):
+    pass
 
 from fastapi import UploadFile, File
 from storage import s3, R2_BUCKET_NAME
