@@ -14,7 +14,8 @@ export default function AdminDashboard() {
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [categoryEditName, setCategoryEditName] = useState("");
   const [editingBookId, setEditingBookId] = useState(null);
-  const [bookEdit, setBookEdit] = useState({ title: "", author: "", category_id: "", file_url: "" });
+  const [bookEdit, setBookEdit] = useState({ title: "", author: "", category_id: "", file_url: "", cover_url: "" });
+  const [coverReplacing, setCoverReplacing] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   const [csvResult, setCsvResult] = useState(null);
   const [csvUploading, setCsvUploading] = useState(false);
@@ -94,6 +95,7 @@ export default function AdminDashboard() {
       author: book.author || "",
       category_id: book.category_id || "",
       file_url: book.file_url || "",
+      cover_url: book.cover_url || "",
     });
     setActionError("");
   };
@@ -120,6 +122,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleReplaceCover = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setActionError("");
+    setCoverReplacing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Cover image upload failed");
+      }
+      const data = await res.json();
+      setBookEdit((prev) => ({ ...prev, cover_url: data.file_url }));
+    } catch (err) {
+      setActionError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setCoverReplacing(false);
+    }
+  };
+
   const saveBook = async (id) => {
     const title = bookEdit.title.trim();
     if (!title) return;
@@ -133,6 +157,7 @@ export default function AdminDashboard() {
           author: bookEdit.author.trim(),
           category_id: bookEdit.category_id ? parseInt(bookEdit.category_id) : null,
           file_url: bookEdit.file_url,
+          cover_url: bookEdit.cover_url,
         }),
       });
       if (!res.ok) throw new Error("Failed to save book");
@@ -356,9 +381,23 @@ export default function AdminDashboard() {
                       )}
                     </div>
                     <div className="flex items-center gap-3">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                        Replace cover:
+                        <input type="file" accept="image/*" onChange={handleReplaceCover} disabled={coverReplacing} className="ml-2 text-xs" />
+                      </label>
+                      {coverReplacing && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Uploading...</span>
+                      )}
+                      {!coverReplacing && bookEdit.cover_url && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                          current: {bookEdit.cover_url.split("/").pop()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => saveBook(book.id)}
-                        disabled={!bookEdit.title.trim() || fileReplacing}
+                        disabled={!bookEdit.title.trim() || fileReplacing || coverReplacing}
                         className="text-xs bg-[#166534] text-white px-3 py-1.5 rounded-md disabled:opacity-50"
                       >
                         Save

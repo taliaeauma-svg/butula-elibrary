@@ -27,6 +27,7 @@ class Book(Base):
     author = Column(String)
     category_id = Column(Integer, ForeignKey("categories.id"))
     file_url = Column(String)
+    cover_url = Column(String)
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     upload_date = Column(DateTime, default=datetime.utcnow)
 

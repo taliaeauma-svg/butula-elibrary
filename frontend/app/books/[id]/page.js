@@ -13,6 +13,7 @@ export default function BookDetail() {
   const { user } = useAuth();
   const [book, setBook] = useState(null);
   const [category, setCategory] = useState(null);
+  const [coverUrl, setCoverUrl] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +32,13 @@ export default function BookDetail() {
               const match = cats.find((c) => c.id === data.category_id);
               setCategory(match || null);
             });
+        }
+        if (data.cover_url) {
+          const filename = data.cover_url.split("/").pop();
+          fetch(`${API_URL}/download/${filename}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((coverData) => coverData && setCoverUrl(coverData.download_url))
+            .catch(() => {});
         }
       })
       .catch(() => setNotFound(true))
@@ -74,9 +82,17 @@ export default function BookDetail() {
 
         {!loading && book && (
           <div className="mt-6 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-8 shadow-sm">
-            <div className="w-14 h-14 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-5 text-[#166534] dark:text-green-400 font-bold text-xl">
-              📘
-            </div>
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt={book.title}
+                className="w-full max-w-xs h-64 object-cover rounded-md mb-5"
+              />
+            ) : (
+              <div className="w-14 h-14 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-5 text-[#166534] dark:text-green-400 font-bold text-xl">
+                📘
+              </div>
+            )}
             <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-gray-50 leading-snug">
               {book.title}
             </h1>

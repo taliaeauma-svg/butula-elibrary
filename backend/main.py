@@ -289,10 +289,22 @@ def check_allowed_by_email(email: str, db: Session = Depends(get_db)):
 
 @app.post("/admin/migrate-add-email-column")
 def migrate_add_email_column(db: Session = Depends(get_db)):
-    from sqlalchemy import text
-    db.execute(text("ALTER TABLE allowed_users ADD COLUMN IF NOT EXISTS email VARCHAR;"))
+    from sqlalchemy import text, inspect
+    columns = [c["name"] for c in inspect(db.bind).get_columns("allowed_users")]
+    if "email" not in columns:
+        db.execute(text("ALTER TABLE allowed_users ADD COLUMN email VARCHAR;"))
     db.execute(text(
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_allowed_users_email ON allowed_users(email);"
     ))
+    db.commit()
+    return {"status": "done"}
+
+
+@app.post("/admin/migrate-add-cover-column")
+def migrate_add_cover_column(db: Session = Depends(get_db)):
+    from sqlalchemy import text, inspect
+    columns = [c["name"] for c in inspect(db.bind).get_columns("books")]
+    if "cover_url" not in columns:
+        db.execute(text("ALTER TABLE books ADD COLUMN cover_url VARCHAR;"))
     db.commit()
     return {"status": "done"}

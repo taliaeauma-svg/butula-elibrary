@@ -23,6 +23,7 @@ export default function Home() {
   const [formError, setFormError] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [categoryError, setCategoryError] = useState("");
+  const [coverUrls, setCoverUrls] = useState({});
   const { user, role } = useAuth();
 
   const fetchBooks = () =>
@@ -38,12 +39,24 @@ export default function Home() {
     }).then(setCategories);
 
   useEffect(() => {
-    setLoading(true);
-    setLoadError("");
     Promise.all([fetchBooks(), fetchCategories()])
       .catch(() => setLoadError("Couldn't load the library right now. Please try refreshing the page."))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    books
+      .filter((b) => b.cover_url && !(b.id in coverUrls))
+      .forEach((b) => {
+        const filename = b.cover_url.split("/").pop();
+        fetch(`${API_URL}/download/${filename}`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data) setCoverUrls((prev) => ({ ...prev, [b.id]: data.download_url }));
+          })
+          .catch(() => {});
+      });
+  }, [books]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +65,7 @@ export default function Home() {
 
     try {
       let fileUrl = "";
+      let coverUrl = "";
 
       if (window.__pendingFile) {
         const formData = new FormData();
@@ -68,6 +82,21 @@ export default function Home() {
         fileUrl = uploadData.file_url;
       }
 
+      if (window.__pendingCoverFile) {
+        const coverFormData = new FormData();
+        coverFormData.append("file", window.__pendingCoverFile);
+        const coverUploadRes = await fetch(`${API_URL}/upload`, {
+          method: "POST",
+          body: coverFormData,
+        });
+        if (!coverUploadRes.ok) {
+          const err = await coverUploadRes.json().catch(() => ({}));
+          throw new Error(err.detail || "Cover image upload failed");
+        }
+        const coverUploadData = await coverUploadRes.json();
+        coverUrl = coverUploadData.file_url;
+      }
+
       const bookRes = await fetch(`${API_URL}/books`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,6 +105,7 @@ export default function Home() {
           author: author.trim(),
           category_id: categoryId ? parseInt(categoryId) : null,
           file_url: fileUrl,
+          cover_url: coverUrl,
         }),
       });
       if (!bookRes.ok) throw new Error("Failed to save the resource");
@@ -84,6 +114,7 @@ export default function Home() {
       setAuthor("");
       setCategoryId("");
       window.__pendingFile = null;
+      window.__pendingCoverFile = null;
       setShowForm(false);
       fetchBooks();
     } catch (err) {
@@ -281,6 +312,15 @@ export default function Home() {
                   className="w-full text-sm text-gray-600 dark:text-gray-300"
                 />
               </div>
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Cover Image (optional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => (window.__pendingCoverFile = e.target.files[0])}
+                  className="w-full text-sm text-gray-600 dark:text-gray-300"
+                />
+              </div>
               <div className="flex items-end">
                 <button
                   type="submit"
@@ -409,9 +449,17 @@ export default function Home() {
                 key={book.id}
                 className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-[#166534]/30 dark:hover:border-green-500/30 transition"
               >
-                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3 text-[#166534] dark:text-green-400 font-bold text-sm">
-                  📘
-                </div>
+                {coverUrls[book.id] ? (
+                  <img
+                    src={coverUrls[book.id]}
+                    alt={book.title}
+                    className="w-full h-32 object-cover rounded-md mb-3"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-3 text-[#166534] dark:text-green-400 font-bold text-sm">
+                    📘
+                  </div>
+                )}
                 <Link href={`/books/${book.id}`}>
                   <h3 className="font-heading font-semibold text-gray-800 dark:text-gray-100 leading-snug hover:text-[#166534] dark:hover:text-green-400 transition">
                     {book.title}

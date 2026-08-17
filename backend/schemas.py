@@ -9,6 +9,7 @@ class BookOut(BaseModel):
     author: Optional[str] = None
     category_id: Optional[int] = None
     file_url: Optional[str] = None
+    cover_url: Optional[str] = None
     upload_date: datetime
 
     class Config:
@@ -20,6 +21,7 @@ class BookCreate(BaseModel):
     author: Optional[str] = None
     category_id: Optional[int] = None
     file_url: Optional[str] = None
+    cover_url: Optional[str] = None
 
 class CategoryCreate(BaseModel):
     name: str
