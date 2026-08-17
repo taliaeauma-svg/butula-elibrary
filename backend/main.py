@@ -31,6 +31,8 @@ from firebase_auth import (
 
 Base.metadata.create_all(bind=engine)
 
+MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -177,11 +179,18 @@ def update_resume(email: str, resume: schemas.ResumeUpdate, db: Session = Depend
 
 @app.post("/upload")
 def upload_file(file: UploadFile = File(...), current: models.User = Depends(get_current_user)):
+    content = file.file.read()
+    if len(content) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024 * 1024)}MB.",
+        )
+
     file_extension = file.filename.split(".")[-1]
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
 
     try:
-        s3.upload_fileobj(file.file, R2_BUCKET_NAME, unique_filename)
+        s3.upload_fileobj(io.BytesIO(content), R2_BUCKET_NAME, unique_filename)
     except ClientError as e:
         raise HTTPException(status_code=502, detail=f"Storage upload failed: {e}")
 
