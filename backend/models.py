@@ -61,4 +61,5 @@ class PortfolioItem(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     file_url = Column(String)
+    size_bytes = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)

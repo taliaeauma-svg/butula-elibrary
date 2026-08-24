@@ -74,6 +74,7 @@ class PortfolioItemOut(BaseModel):
     title: str
     description: Optional[str] = None
     file_url: Optional[str] = None
+    size_bytes: int = 0
     created_at: datetime
 
     class Config:
@@ -83,6 +84,8 @@ class PortfolioOut(BaseModel):
     bio: Optional[str] = None
     skills: Optional[str] = None
     items: List[PortfolioItemOut]
+    used_bytes: int
+    limit_bytes: int
 
 class ResumeUpdate(BaseModel):
     bio: Optional[str] = None

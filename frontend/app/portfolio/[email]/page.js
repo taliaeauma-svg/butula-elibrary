@@ -129,7 +129,10 @@ export default function Portfolio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: newType, title, description: newDescription.trim(), file_url: fileUrl }),
       });
-      if (!res.ok) throw new Error("Failed to add item");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to add item");
+      }
 
       setNewTitle("");
       setNewDescription("");
@@ -185,7 +188,10 @@ export default function Portfolio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...itemEdit, title }),
       });
-      if (!res.ok) throw new Error("Failed to save item");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to save item");
+      }
       setEditingItemId(null);
       fetchPortfolio();
     } catch (err) {
@@ -248,6 +254,26 @@ export default function Portfolio() {
         {actionError && (
           <div className="mb-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm rounded-lg px-4 py-3">
             {actionError}
+          </div>
+        )}
+
+        {isOwner && portfolio && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 mb-1">
+              <span>Storage used</span>
+              <span>
+                {(portfolio.used_bytes / (1024 * 1024)).toFixed(1)}MB of{" "}
+                {(portfolio.limit_bytes / (1024 * 1024)).toFixed(0)}MB
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+              <div
+                className="h-full bg-[#166534] dark:bg-green-500"
+                style={{
+                  width: `${Math.min(100, (portfolio.used_bytes / portfolio.limit_bytes) * 100)}%`,
+                }}
+              />
+            </div>
           </div>
         )}
 

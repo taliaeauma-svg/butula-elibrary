@@ -32,6 +32,7 @@ from firebase_auth import (
 Base.metadata.create_all(bind=engine)
 
 MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB
+MAX_STUDENT_STORAGE = 200 * 1024 * 1024  # 200MB total per student across all portfolio items
 
 app = FastAPI()
 app.add_middleware(
@@ -256,12 +257,54 @@ def get_portfolio(email: str, db: Session = Depends(get_db), current: models.Use
         .order_by(models.PortfolioItem.created_at.desc())
         .all()
     )
-    return schemas.PortfolioOut(bio=user.bio, skills=user.skills, items=items)
+    used_bytes = sum(i.size_bytes or 0 for i in items)
+    return schemas.PortfolioOut(
+        bio=user.bio, skills=user.skills, items=items,
+        used_bytes=used_bytes, limit_bytes=MAX_STUDENT_STORAGE,
+    )
+
+
+def _file_size(filename: str) -> int:
+    try:
+        head = s3.head_object(Bucket=R2_BUCKET_NAME, Key=filename)
+        return head["ContentLength"]
+    except ClientError as e:
+        raise HTTPException(status_code=400, detail=f"Couldn't verify uploaded file: {e}")
+
+
+def _student_usage(db: Session, user_id: int, exclude_item_id: int = None) -> int:
+    query = db.query(models.PortfolioItem).filter(models.PortfolioItem.user_id == user_id)
+    if exclude_item_id is not None:
+        query = query.filter(models.PortfolioItem.id != exclude_item_id)
+    return sum(i.size_bytes or 0 for i in query.all())
+
+
+def _delete_r2_object(file_url: str):
+    if not file_url:
+        return
+    filename = file_url.split("/").pop()
+    try:
+        s3.delete_object(Bucket=R2_BUCKET_NAME, Key=filename)
+    except ClientError:
+        pass
 
 
 @app.post("/portfolio/items", response_model=schemas.PortfolioItemOut)
 def create_portfolio_item(item: schemas.PortfolioItemCreate, db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
-    new_item = models.PortfolioItem(user_id=current.id, **item.dict())
+    size_bytes = 0
+    if item.file_url:
+        filename = item.file_url.split("/").pop()
+        size_bytes = _file_size(filename)
+        used = _student_usage(db, current.id)
+        if used + size_bytes > MAX_STUDENT_STORAGE:
+            _delete_r2_object(item.file_url)
+            raise HTTPException(
+                status_code=413,
+                detail=f"This would exceed your {MAX_STUDENT_STORAGE // (1024 * 1024)}MB storage limit "
+                       f"({(used) // (1024 * 1024)}MB used already).",
+            )
+
+    new_item = models.PortfolioItem(user_id=current.id, size_bytes=size_bytes, **item.dict())
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
@@ -274,10 +317,32 @@ def update_portfolio_item(item_id: int, item: schemas.PortfolioItemCreate, db: S
     if not existing:
         raise HTTPException(status_code=404, detail="Portfolio item not found")
     require_owner_id_or_admin(existing.user_id, current)
+
+    old_file_url = existing.file_url
+    size_bytes = existing.size_bytes or 0
+    file_changed = item.file_url and item.file_url != old_file_url
+
+    if file_changed:
+        filename = item.file_url.split("/").pop()
+        size_bytes = _file_size(filename)
+        used = _student_usage(db, existing.user_id, exclude_item_id=existing.id)
+        if used + size_bytes > MAX_STUDENT_STORAGE:
+            _delete_r2_object(item.file_url)
+            raise HTTPException(
+                status_code=413,
+                detail=f"This would exceed your {MAX_STUDENT_STORAGE // (1024 * 1024)}MB storage limit "
+                       f"({(used) // (1024 * 1024)}MB used already).",
+            )
+
     for key, value in item.dict().items():
         setattr(existing, key, value)
+    existing.size_bytes = size_bytes
     db.commit()
     db.refresh(existing)
+
+    if file_changed and old_file_url:
+        _delete_r2_object(old_file_url)
+
     return existing
 
 
@@ -287,8 +352,10 @@ def delete_portfolio_item(item_id: int, db: Session = Depends(get_db), current: 
     if not existing:
         raise HTTPException(status_code=404, detail="Portfolio item not found")
     require_owner_id_or_admin(existing.user_id, current)
+    file_url = existing.file_url
     db.delete(existing)
     db.commit()
+    _delete_r2_object(file_url)
     return {"message": "Portfolio item deleted successfully"}
 
 
@@ -409,5 +476,15 @@ def migrate_add_resume_columns(db: Session = Depends(get_db), admin: models.User
         db.execute(text("ALTER TABLE users ADD COLUMN bio VARCHAR;"))
     if "skills" not in columns:
         db.execute(text("ALTER TABLE users ADD COLUMN skills VARCHAR;"))
+    db.commit()
+    return {"status": "done"}
+
+
+@app.post("/admin/migrate-add-portfolio-size-column")
+def migrate_add_portfolio_size_column(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
+    from sqlalchemy import text, inspect
+    columns = [c["name"] for c in inspect(db.bind).get_columns("portfolio_items")]
+    if "size_bytes" not in columns:
+        db.execute(text("ALTER TABLE portfolio_items ADD COLUMN size_bytes INTEGER DEFAULT 0;"))
     db.commit()
     return {"status": "done"}
