@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { authedFetch } from "../../lib/useAuth";
@@ -17,7 +18,27 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetSending, setResetSending] = useState(false);
   const router = useRouter();
+
+  const handleForgotPassword = async () => {
+    const trimmedEmail = email.trim().toLowerCase();
+    setError("");
+    setResetSent(false);
+    if (!trimmedEmail) {
+      setError("Enter your email above first, then click \"Forgot password?\"");
+      return;
+    }
+    setResetSending(true);
+    try {
+      await sendPasswordResetEmail(auth, trimmedEmail);
+      setResetSent(true);
+    } catch (err) {
+      setError("Couldn't send a reset email. Double-check the address and try again.");
+    }
+    setResetSending(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,6 +120,11 @@ export default function Login() {
           </div>
 
           {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
+          {resetSent && (
+            <p className="text-[#166534] dark:text-green-400 text-sm">
+              Password reset email sent — check your inbox.
+            </p>
+          )}
 
           <button
             type="submit"
@@ -106,6 +132,15 @@ export default function Login() {
             className="bg-[#166534] text-white font-medium px-5 py-2.5 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition text-sm disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            disabled={resetSending}
+            className="text-xs text-gray-400 dark:text-gray-500 hover:text-[#166534] dark:hover:text-green-400 text-left disabled:opacity-50"
+          >
+            {resetSending ? "Sending..." : "Forgot password?"}
           </button>
         </form>
 
