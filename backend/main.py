@@ -11,8 +11,10 @@ from botocore.exceptions import ClientError
 import uuid
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime
 from database import engine, Base, SessionLocal
 import models
 import schemas
@@ -488,3 +490,32 @@ def migrate_add_portfolio_size_column(db: Session = Depends(get_db), admin: mode
         db.execute(text("ALTER TABLE portfolio_items ADD COLUMN size_bytes INTEGER DEFAULT 0;"))
     db.commit()
     return {"status": "done"}
+
+
+def _serialize_rows(rows):
+    result = []
+    for row in rows:
+        record = {}
+        for column in row.__table__.columns:
+            value = getattr(row, column.name)
+            record[column.name] = value.isoformat() if isinstance(value, datetime) else value
+        result.append(record)
+    return result
+
+
+@app.get("/admin/backup")
+def export_backup(db: Session = Depends(get_db), admin: models.User = Depends(require_admin)):
+    data = {
+        "exported_at": datetime.utcnow().isoformat(),
+        "users": _serialize_rows(db.query(models.User).all()),
+        "categories": _serialize_rows(db.query(models.Category).all()),
+        "books": _serialize_rows(db.query(models.Book).all()),
+        "allowed_users": _serialize_rows(db.query(models.AllowedUser).all()),
+        "downloads": _serialize_rows(db.query(models.Download).all()),
+        "portfolio_items": _serialize_rows(db.query(models.PortfolioItem).all()),
+    }
+    filename = f"elibrary-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
+    return JSONResponse(
+        content=data,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

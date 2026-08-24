@@ -26,12 +26,15 @@ export default function AdminDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [roleUpdating, setRoleUpdating] = useState(null);
+  const [backupError, setBackupError] = useState("");
+  const [backingUp, setBackingUp] = useState(false);
 
   const sections = [
     { id: "categories", label: "Categories" },
     { id: "books", label: "Books" },
     { id: "upload", label: "Bulk Upload" },
     { id: "users", label: "Users" },
+    { id: "backup", label: "Backup" },
   ];
 
   const fetchCategories = () =>
@@ -69,6 +72,28 @@ export default function AdminDashboard() {
       setActionError(err.message || "Something went wrong. Please try again.");
     } finally {
       setRoleUpdating(null);
+    }
+  };
+
+  const exportBackup = async () => {
+    setBackupError("");
+    setBackingUp(true);
+    try {
+      const res = await authedFetch(`${API_URL}/admin/backup`);
+      if (!res.ok) throw new Error("Failed to export backup");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `elibrary-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setBackupError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setBackingUp(false);
     }
   };
 
@@ -524,6 +549,28 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
+        </div>
+        )}
+
+        {/* Backup */}
+        {activeSection === "backup" && (
+        <div>
+          <h2 className="text-lg font-heading font-semibold text-gray-800 dark:text-gray-100 mb-4">Backup</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Downloads a full snapshot of the library&apos;s data (users, categories, books, allowed users,
+            downloads, and portfolio items) as a JSON file. This does not include uploaded files themselves
+            (those live in R2), only the records that reference them.
+          </p>
+          <button
+            onClick={exportBackup}
+            disabled={backingUp}
+            className="bg-[#166534] text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-[#14532d] dark:hover:bg-green-700 transition disabled:opacity-50"
+          >
+            {backingUp ? "Exporting..." : "Export Backup"}
+          </button>
+          {backupError && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{backupError}</p>
+          )}
         </div>
         )}
       </section>
