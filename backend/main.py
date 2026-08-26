@@ -31,6 +31,13 @@ from firebase_auth import (
     require_owner_id_or_staff,
 )
 
+import sentry_sdk
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    send_default_pii=False,
+    traces_sample_rate=0,
+)
+
 Base.metadata.create_all(bind=engine)
 
 MAX_UPLOAD_SIZE = 100 * 1024 * 1024  # 100MB
